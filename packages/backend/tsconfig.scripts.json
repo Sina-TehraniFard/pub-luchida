@@ -1,0 +1,11 @@
+{
+  // scripts/ を含めた型検査専用の設定（npm run typecheck で使用。build には影響しない）。
+  // scripts/manual-test/ は本番 API を叩く手動確認用で、現行の Broker / Rule の
+  // シグネチャから乖離しており修正規模が大きいため対象外（別 Issue で追随する）。
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "."
+  },
+  "include": ["src/**/*", "scripts/**/*"],
+  "exclude": ["scripts/manual-test/**/*"]
+}

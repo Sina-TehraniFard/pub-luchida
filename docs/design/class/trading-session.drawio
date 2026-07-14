@@ -1,0 +1,169 @@
+<mxfile host="65bd71144e">
+    <diagram name="TradingSession Class Diagram" id="trading_session_class">
+        <mxGraphModel dx="1344" dy="1186" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1400" pageHeight="1000" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="" style="whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;connectable=0;" parent="1" vertex="1">
+                    <mxGeometry x="8" y="-150" width="1500" height="1104" as="geometry"/>
+                </mxCell>
+                <mxCell id="title" value="TradingSession クラス図（段取り役 + 市場データ配信）" style="text;align=center;verticalAlign=middle;fontSize=20;fontStyle=1;fontColor=#333;shadow=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;connectable=0;" parent="1" vertex="1">
+                    <mxGeometry x="16" y="-146" width="1483" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="ts" value="TradingSession&#10;(Application Service)" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#fce4d6;strokeColor=#e6873e;startSize=45;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="436" y="110" width="390" height="383" as="geometry"/>
+                </mxCell>
+                <mxCell id="ts_attrs" value="- entryRules: EntryRule[]&#10;- exitRules: ExitRule[]&#10;- entryExecution: EntryExecution&#10;- exitExecution: ExitExecution&#10;- positionRepository: PositionRepository&#10;- marketDataStream: MarketDataStreamPort&#10;- timeFrameBook: TimeFrameBook&#10;- uiNotifier: UiNotifier&#10;- candleHistoryPort: CandleHistoryPort&#10;- autoEntry: boolean&#10;- entryInProgress: boolean&#10;- exitInProgress: boolean" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="ts" vertex="1">
+                    <mxGeometry y="45" width="390" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="ts_sep" value="" style="line;strokeColor=#e6873e;" parent="ts" vertex="1">
+                    <mxGeometry x="-2" y="209" width="390" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="ts_methods" value="+ start(pair: CurrencyPair): Promise&lt;void&gt;&#10;+ stop(): Promise&lt;void&gt;&#10;+ onMarketData(snapshot: MarketSnapshot): Promise&lt;void&gt;&#10;- evaluateEntry(snapshot: MarketSnapshot): Promise&lt;void&gt;&#10;- evaluateExit(snapshot: MarketSnapshot): Promise&lt;void&gt;" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="ts" vertex="1">
+                    <mxGeometry y="214" width="390" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="mds" value="MarketDataStream&#10;(Infrastructure)" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#f5f5f5;strokeColor=#999;startSize=45;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="429" y="661" width="394" height="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="mds_attrs" value="- marketDataPort: MarketDataPort&#10;- timeFrameBook: TimeFrameBook&#10;- listener: (snapshot: MarketSnapshot) =&gt; void" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="mds" vertex="1">
+                    <mxGeometry y="45" width="340" height="65" as="geometry"/>
+                </mxCell>
+                <mxCell id="mds_sep" value="" style="line;strokeColor=#999;" parent="mds" vertex="1">
+                    <mxGeometry y="95" width="394" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="mds_methods" value="+ start(): Promise&lt;void&gt;&#10;+ stop(): Promise&lt;void&gt;" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="mds" vertex="1">
+                    <mxGeometry y="103" width="389" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="entry_rule" value="&lt;&lt;interface&gt;&gt;&#10;EntryRule" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#fff2cc;strokeColor=#d6b656;startSize=45;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="80" width="300" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="er_sep" value="" style="line;strokeColor=#d6b656;" parent="entry_rule" vertex="1">
+                    <mxGeometry y="45" width="300" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="er_method" value="+ shouldEntry(snapshot: MarketSnapshot)&#10;    : EntryCommand | DoNothing" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="entry_rule" vertex="1">
+                    <mxGeometry y="53" width="300" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="exit_rule" value="&lt;&lt;interface&gt;&gt;&#10;ExitRule" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#fff2cc;strokeColor=#d6b656;startSize=45;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="63" y="295" width="300" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="xr_sep" value="" style="line;strokeColor=#d6b656;" parent="exit_rule" vertex="1">
+                    <mxGeometry y="45" width="300" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="xr_method" value="+ shouldExit(snapshot: MarketSnapshot,&#10;           position: Position)&#10;    : ExitCommand | DoNothing" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="exit_rule" vertex="1">
+                    <mxGeometry y="53" width="300" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="entry_exec" value="EntryExecution" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#dae8fc;strokeColor=#6c8ebf;startSize=30;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="919" y="109" width="350" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="ee_sep" value="" style="line;strokeColor=#6c8ebf;" parent="entry_exec" vertex="1">
+                    <mxGeometry y="30" width="350" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="ee_method" value="+ openPosition(command: EntryCommand): Promise&lt;void&gt;" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="entry_exec" vertex="1">
+                    <mxGeometry y="38" width="350" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="exit_exec" value="ExitExecution" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#dae8fc;strokeColor=#6c8ebf;startSize=30;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="919" y="216" width="350" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="xe_sep" value="" style="line;strokeColor=#6c8ebf;" parent="exit_exec" vertex="1">
+                    <mxGeometry y="30" width="350" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="xe_method" value="+ closePosition(command: ExitCommand): Promise&lt;void&gt;" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="exit_exec" vertex="1">
+                    <mxGeometry y="38" width="350" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="md_port" value="&lt;&lt;interface&gt;&gt;&#10;MarketDataPort" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#e1d5e7;strokeColor=#9673a6;startSize=45;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="37" y="661" width="320" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="mp_sep" value="" style="line;strokeColor=#9673a6;" parent="md_port" vertex="1">
+                    <mxGeometry y="45" width="320" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="mp_method" value="+ connect(): Promise&lt;void&gt;&#10;+ disconnect(): Promise&lt;void&gt;&#10;+ subscribe(onTick: (tick: Tick) =&gt; void): () =&gt; void" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="md_port" vertex="1">
+                    <mxGeometry y="53" width="320" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="pos_repo" value="&lt;&lt;interface&gt;&gt;&#10;PositionRepository" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#e1d5e7;strokeColor=#9673a6;startSize=45;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="923" y="329" width="346" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="pr_sep" value="" style="line;strokeColor=#9673a6;" parent="pos_repo" vertex="1">
+                    <mxGeometry y="45" width="320" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="pr_methods" value="+ register(position: Position): Promise&lt;void&gt;&#10;+ update(position: Position): Promise&lt;void&gt;&#10;+ findById(id: PositionId): Promise&lt;Position&gt;&#10;+ openPositions(): Promise&lt;OpenPositions&gt;" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="pos_repo" vertex="1">
+                    <mxGeometry y="53" width="320" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_ts_er" value="uses" style="endArrow=open;endFill=0;dashed=1;strokeColor=#e6873e;fontSize=11;fontColor=#FFFFFF;fontStyle=2;" parent="1" source="ts" target="entry_rule" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_ts_xr" value="uses" style="endArrow=open;endFill=0;dashed=1;strokeColor=#e6873e;fontSize=11;fontColor=#FFFFFF;fontStyle=2;" parent="1" source="ts" target="exit_rule" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_ts_ee" value="uses" style="endArrow=open;endFill=0;dashed=1;strokeColor=#e6873e;fontSize=11;fontColor=#FFFFFF;fontStyle=2;exitX=1;exitY=0;exitDx=0;exitDy=0;" parent="1" source="ts_attrs" target="entry_exec" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_ts_xe" value="uses" style="endArrow=open;endFill=0;dashed=1;strokeColor=#e6873e;fontSize=11;fontColor=#FFFFFF;fontStyle=2;" parent="1" source="ts" target="exit_exec" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_ts_pr" value="uses" style="endArrow=open;endFill=0;dashed=1;strokeColor=#e6873e;fontSize=11;fontColor=#e6873e;fontStyle=2;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=-0.002;entryY=0.088;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="ts_methods" target="pr_methods" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_mds_mp" value="subscribes" style="endArrow=open;endFill=0;dashed=1;strokeColor=#999;fontSize=11;fontColor=#999;fontStyle=2;" parent="1" source="mds" target="md_port" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_mds_ts" value="onMarketData" style="endArrow=open;endFill=0;dashed=0;strokeColor=#999;fontSize=11;fontColor=#FFFFFF;fontStyle=2;" parent="1" source="mds" target="ts" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="note_ts" value="段取り役（Application Service）&#10;start()でCandleHistoryPortから過去足を取得しwarmUp→市場監視開始&#10;市場データが来たらRuleを呼ぶ&#10;EntryCommand → 自動発注 + UIにシグナル通知&#10;ExitCommand → 即座にExitExecutionで自動決済&#10;entryInProgress/exitInProgressで並行評価を防止" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="436" y="-1" width="390" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="note_ts_arr" style="strokeColor=#d6b656;dashed=1;endArrow=none;" parent="1" source="note_ts" target="ts" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="note_mds" value="薄いブリッジ（Infrastructure層）&#10;tick受信 → TimeFrameBookに渡す → MarketSnapshot受取 → listener通知&#10;WebSocket購読・再接続はMarketDataPort実装（Adapter層）の責務&#10;自身はtickの加工もSnapshot組立もしない" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="794" y="731" width="393" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="note_mds_arr" style="strokeColor=#d6b656;dashed=1;endArrow=none;" parent="1" source="note_mds" target="mds" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="note_er" value="各tick: shouldEntry(market) を呼ぶ&#10;EntryCommand → 自動発注 + UIにシグナル通知&#10;DoNothing → 何もしない" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="10" width="250" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="note_er_arr" style="strokeColor=#d6b656;dashed=1;endArrow=none;" parent="1" source="note_er" target="entry_rule" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="note_xr" value="決済の権威（3大権威の1つ）&#10;ExitCommand → 即座に自動決済（ユーザー承認不要）&#10;ポジションごとに独立判定" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="63" y="225" width="250" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="note_xr_arr" style="strokeColor=#d6b656;dashed=1;endArrow=none;" parent="1" source="note_xr" target="exit_rule" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="note_cal" value="TradingGuard（次フェーズ）は&#10;TradingSessionで制御する&#10;取引禁止中はCommandを握りつぶす&#10;経済指標・APIメンテ・異常検知で発動" style="shape=note;whiteSpace=wrap;size=14;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;align=left;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="792.5" y="659" width="396" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_ts_mds" value="starts" style="endArrow=open;endFill=0;dashed=1;strokeColor=#e6873e;fontSize=11;fontColor=#FFFFFF;fontStyle=2;" parent="1" source="ts" target="mds" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ui_notifier" value="&lt;&lt;interface&gt;&gt;&#10;UiNotifier" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#e1d5e7;strokeColor=#9673a6;startSize=45;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="919" y="450" width="346" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="un_sep" value="" style="line;strokeColor=#9673a6;" parent="ui_notifier" vertex="1">
+                    <mxGeometry y="45" width="346" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="un_methods" value="+ notifyEntryReady(command: EntryCommand): Promise&lt;void&gt;&#10;+ notifyEntryExpired(command: EntryCommand): Promise&lt;void&gt;&#10;+ notifyExitExecuted(command: ExitCommand): Promise&lt;void&gt;" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="ui_notifier" vertex="1">
+                    <mxGeometry y="53" width="346" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="note_un" value="Port層のinterface。&#10;TradingSessionはこれを通じてUIに通知する。&#10;React等のUI実装詳細を知らない。&#10;notifyEntryReady: シグナル検知をUIに表示。&#10;notifyEntryExpired: シグナル消失をUIに表示。" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="919" y="570" width="346" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="note_un_arr" style="strokeColor=#d6b656;dashed=1;endArrow=none;" parent="1" source="note_un" target="ui_notifier" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_ts_un" value="uses" style="endArrow=open;endFill=0;dashed=1;strokeColor=#e6873e;fontSize=11;fontColor=#e6873e;fontStyle=2;exitX=1;exitY=0.9;exitDx=0;exitDy=0;" parent="1" source="ts" target="ui_notifier" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ref_tfb" value="TimeFrameBook&#10;&#10;参照: market-data-book.drawio" style="rounded=0;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#999;fontColor=#999;fontSize=12;fontStyle=1;dashed=1;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="919" y="-11" width="280" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_ts_tfb" value="uses" style="endArrow=open;endFill=0;dashed=1;strokeColor=#e6873e;fontSize=11;fontColor=#e6873e;fontStyle=2;" parent="1" source="ts" target="ref_tfb" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

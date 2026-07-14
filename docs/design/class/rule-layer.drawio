@@ -1,0 +1,122 @@
+<mxfile host="65bd71144e">
+    <diagram name="Rule Layer Class Diagram" id="rule_class">
+        <mxGraphModel dx="1094" dy="1325" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="" style="whiteSpace=wrap;html=1;shadow=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+                    <mxGeometry x="52" y="-36" width="1164" height="964" as="geometry"/>
+                </mxCell>
+                <mxCell id="title" value="Rule層 クラス図（2大権威 + Command）" style="text;align=center;verticalAlign=middle;fontSize=20;fontStyle=1;fontColor=#333;shadow=1;" parent="1" vertex="1">
+                    <mxGeometry x="344" y="-4" width="500" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="entry_rule" value="&lt;&lt;interface&gt;&gt;&#10;EntryRule" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#fff2cc;strokeColor=#d6b656;startSize=45;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="120" width="320" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="entry_rule_attr" value="+ name: String" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="entry_rule" vertex="1">
+                    <mxGeometry y="45" width="320" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="entry_rule_sep" value="" style="line;strokeColor=#d6b656;" parent="entry_rule" vertex="1">
+                    <mxGeometry y="70" width="320" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="entry_rule_method" value="+ shouldEntry(snapshot: MarketSnapshot)&#10;    : EntryCommand | DoNothing" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="entry_rule" vertex="1">
+                    <mxGeometry y="78" width="320" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="entry_rule_note" value="システム上の権威：エントリー判定を行うルール&#10;TradingSessionから市場データを受け取り判定する&#10;自分では市場データを取得しない&#10;「エントリー」か「何もしない」を返す" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="46" width="320" height="74" as="geometry"/>
+                </mxCell>
+                <mxCell id="entry_rule_note_arr" style="strokeColor=#d6b656;dashed=1;endArrow=none;" parent="1" source="entry_rule_note" target="entry_rule" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="exit_rule" value="&lt;&lt;interface&gt;&gt;&#10;ExitRule" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#fff2cc;strokeColor=#d6b656;startSize=45;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="69" y="598" width="320" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="exit_rule_attr" value="+ name: String" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="exit_rule" vertex="1">
+                    <mxGeometry y="45" width="320" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="exit_rule_sep" value="" style="line;strokeColor=#d6b656;" parent="exit_rule" vertex="1">
+                    <mxGeometry y="70" width="320" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="exit_rule_method" value="+ shouldExit(snapshot: MarketSnapshot, position: Position)&#10;    : ExitCommand | DoNothing" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="exit_rule" vertex="1">
+                    <mxGeometry y="78" width="320" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="exit_rule_note" value="システム上の権威：利確・損切り判定&#10;TradingSessionから市場データとポジションを受け取り判定する&#10;自分では市場データを取得しない&#10;「決済」か「何もしない」を返す" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="69" y="528" width="320" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="exit_rule_note_arr" style="strokeColor=#d6b656;dashed=1;endArrow=none;" parent="1" source="exit_rule_note" target="exit_rule" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="entry_cmd" value="EntryCommand" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#d5e8d4;strokeColor=#82b366;startSize=30;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="529" y="120" width="280" height="129" as="geometry"/>
+                </mxCell>
+                <mxCell id="entry_cmd_attrs" value="+ buySell: BuySell&#10;+ pair: CurrencyPair&#10;+ lot: Lot&#10;+ reason: EntryReason&#10;+ convictionScore: ConvictionScore" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="entry_cmd" vertex="1">
+                    <mxGeometry y="30" width="280" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="entry_cmd_note" value="エントリーの命令書&#10;通貨ペア・ロット数・&#10;売買区分・理由を持つ" style="shape=note;whiteSpace=wrap;size=14;fillColor=#e8f5e9;strokeColor=#82b366;fontSize=11;fontColor=#3a6b2a;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="809" y="120" width="180" height="65" as="geometry"/>
+                </mxCell>
+                <mxCell id="entry_cmd_note_arr" style="strokeColor=#82b366;dashed=1;endArrow=none;" parent="1" source="entry_cmd_note" target="entry_cmd" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="exit_cmd_note" value="決済の命令書&#10;利確か損切りかを明示&#10;対象ポジションIDと理由を持つ" style="shape=note;whiteSpace=wrap;size=14;fillColor=#e8f5e9;strokeColor=#82b366;fontSize=11;fontColor=#3a6b2a;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="805" y="594" width="210" height="65" as="geometry"/>
+                </mxCell>
+                <mxCell id="exit_cmd_note_arr" style="strokeColor=#82b366;dashed=1;endArrow=none;" parent="1" source="exit_cmd_note" target="exit_cmd" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="do_nothing" value="DoNothing" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#f5f5f5;strokeColor=#999;startSize=30;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="534" y="384" width="222" height="68" as="geometry"/>
+                </mxCell>
+                <mxCell id="do_nothing_attrs" value="+ type: DO_NOTHING" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="do_nothing" vertex="1">
+                    <mxGeometry y="30" width="200" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="do_nothing_note" value="何もしない&#10;条件未成立の場合に返す" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fafafa;strokeColor=#999;fontSize=11;fontColor=#666;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="780" y="384" width="170" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="do_nothing_note_arr" style="strokeColor=#999;dashed=1;endArrow=none;" parent="1" source="do_nothing_note" target="do_nothing" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_entry_ecmd" value="returns" style="endArrow=open;endFill=0;dashed=1;strokeColor=#82b366;fontSize=11;fontColor=#82b366;fontStyle=2;" parent="1" source="entry_rule" target="entry_cmd" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_entry_dn" value="returns" style="endArrow=open;endFill=0;dashed=1;strokeColor=#999;fontSize=11;fontColor=#999;fontStyle=2;" parent="1" source="entry_rule" target="do_nothing" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_exit_xcmd" value="returns" style="endArrow=open;endFill=0;dashed=1;strokeColor=#82b366;fontSize=11;fontColor=#82b366;fontStyle=2;" parent="1" source="exit_rule" target="exit_cmd" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_exit_dn" value="returns" style="endArrow=open;endFill=0;dashed=1;strokeColor=#999;fontSize=11;fontColor=#999;fontStyle=2;" parent="1" source="exit_rule" target="do_nothing" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="360" y="450"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="exit_cmd" value="ExitCommand" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#d5e8d4;strokeColor=#82b366;startSize=30;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="453" y="598" width="316" height="139" as="geometry"/>
+                </mxCell>
+                <mxCell id="exit_cmd_attrs" value="+ type: TAKE_PROFIT | STOP_LOSS&#10;+ positionId: PositionId&#10;+ reason: ExitReason" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="1" vertex="1">
+                    <mxGeometry x="461" y="647" width="280" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="strategy_name" value="StrategyName" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#fff2cc;strokeColor=#d6b656;startSize=30;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="280" width="320" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="strategy_name_attr" value="+ value: string" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="strategy_name" vertex="1">
+                    <mxGeometry y="30" width="320" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="strategy_name_sep" value="" style="line;strokeColor=#d6b656;" parent="strategy_name" vertex="1">
+                    <mxGeometry y="55" width="320" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="strategy_name_note_arr" style="strokeColor=#d6b656;dashed=1;endArrow=none;" parent="1" source="strategy_name_note" target="strategy_name" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="dir_structure" value="rule/&#10;  EntryRule.ts&#10;  ExitRule.ts&#10;  sma-cross/&#10;  rsi/&#10;  sma-distance/&#10;  wick/&#10;  shared/" style="text;whiteSpace=wrap;fontSize=12;fontColor=#333;fontFamily=monospace;align=left;verticalAlign=top;fillColor=#f5f5f5;strokeColor=#999;rounded=1;spacingLeft=8;spacingTop=4;" parent="1" vertex="1">
+                    <mxGeometry x="840" y="220" width="160" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="strategy_name_note" value="どの戦略がこのRuleを実行しているかを識別する名前&#10;&#10;有効値:&#10;SMA_CROSS / RSI_REVERSAL /&#10;SMA_DISTANCE / WICK_REVERSAL&#10;&#10;値オブジェクトのコンストラクタで検証する" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="76" y="373" width="320" height="110" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

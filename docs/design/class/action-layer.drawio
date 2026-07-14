@@ -1,0 +1,106 @@
+<mxfile host="65bd71144e">
+    <diagram name="Action層クラス図" id="action-layer">
+        <mxGraphModel dx="1504" dy="786" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="3" value="" style="whiteSpace=wrap;html=1;fontColor=#333333;fillColor=#f5f5f5;strokeColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="-26" y="12" width="1342" height="795" as="geometry"/>
+                </mxCell>
+                <mxCell id="title" value="Action層 クラス図" style="text;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#FFFFFF;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="10" width="790" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="entryCmd" value="EntryCommand&#10;（Rule層からの命令書）" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="74" width="284" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="entryCmdFields" value="pair: CurrencyPair&#10;buySell: BuySell&#10;lot: Lot&#10;reason: EntryReason" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#f5f5f5;strokeColor=none;fontSize=11;fontColor=#000000;" parent="entryCmd" vertex="1">
+                    <mxGeometry y="40" width="284" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="exitCmd" value="ExitCommand&#10;（Rule層からの命令書）" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="559" y="75" width="281" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="exitCmdFields" value="type: TAKE_PROFIT | STOP_LOSS&#10;positionId: PositionId&#10;reason: ExitReason" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#f5f5f5;strokeColor=none;fontSize=11;fontColor=#000000;" parent="exitCmd" vertex="1">
+                    <mxGeometry y="40" width="281" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="entryExec" value="EntryExecution&#10;（エントリー執行）" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="300" width="280" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="entryExecContent" value="- broker: Broker&#10;- positionRepository: PositionRepository&#10;--&#10;+ openPosition(command: EntryCommand): void" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#dae8fc;strokeColor=none;fontSize=11;fontColor=#000000;" parent="entryExec" vertex="1">
+                    <mxGeometry y="40" width="280" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="exitExec" value="ExitExecution&#10;（決済執行）" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="560" y="300" width="280" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="exitExecContent" value="- broker: Broker&#10;- positionRepository: PositionRepository&#10;--&#10;+ closePosition(command: ExitCommand): void" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#dae8fc;strokeColor=none;fontSize=11;fontColor=#000000;" parent="exitExec" vertex="1">
+                    <mxGeometry y="40" width="280" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="broker" value="&lt;&lt;interface&gt;&gt;&#10;Broker" style="swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="540" width="340" height="112" as="geometry"/>
+                </mxCell>
+                <mxCell id="brokerMethods" value="+ placeEntry(command: EntryCommand): Promise&lt;EntryResult&gt;&#10;+ placeExit(position: Position): Promise&lt;ExitResult&gt;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=11;fontColor=#000000;" parent="broker" vertex="1">
+                    <mxGeometry y="45" width="340" height="67" as="geometry"/>
+                </mxCell>
+                <mxCell id="posRepo" value="&lt;&lt;interface&gt;&gt;&#10;PositionRepository" style="swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="500" y="540" width="340" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="posRepoMethods" value="+ register(position: Position): Promise&lt;void&gt;&#10;+ update(position: Position): Promise&lt;void&gt;&#10;+ findById(id: PositionId): Promise&lt;Position&gt;&#10;+ openPositions(): Promise&lt;OpenPositions&gt;" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=11;fontColor=#000000;" parent="posRepo" vertex="1">
+                    <mxGeometry y="45" width="340" height="65" as="geometry"/>
+                </mxCell>
+                <mxCell id="voGroup" value="値オブジェクト" style="shape=mxgraph.basic.rect;fillColor=#fce4d6;strokeColor=#e6873e;fontSize=14;fontStyle=1;verticalAlign=top;spacingTop=5;dashed=0;rounded=1;arcSize=8;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="930" y="70" width="380" height="580" as="geometry"/>
+                </mxCell>
+                <mxCell id="voCurrency" value="CurrencyPair&#10;通貨ペア（例: USD/JPY）" style="rounded=1;whiteSpace=wrap;arcSize=20;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=center;verticalAlign=middle;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1030" y="120" width="180" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="voBuySell" value="BuySell&#10;売買区分（BUY / SELL）" style="rounded=1;whiteSpace=wrap;arcSize=20;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=center;verticalAlign=middle;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1030" y="190" width="180" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="voLot" value="Lot&#10;取引数量" style="rounded=1;whiteSpace=wrap;arcSize=20;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=center;verticalAlign=middle;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1030" y="260" width="180" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="voPosId" value="PositionId&#10;ポジションID" style="rounded=1;whiteSpace=wrap;arcSize=20;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=center;verticalAlign=middle;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1030" y="330" width="180" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="voEntryResult" value="EntryResult&#10;約定結果&#10;(positionId, entryPrice, executedAt)" style="rounded=1;whiteSpace=wrap;arcSize=20;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;align=center;verticalAlign=middle;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1030" y="400" width="180" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="voExitResult" value="ExitResult&#10;決済結果&#10;(exitPrice, executedAt, profitLoss)" style="rounded=1;whiteSpace=wrap;arcSize=20;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;align=center;verticalAlign=middle;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1030" y="470" width="180" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="voOpenPos" value="OpenPositions&#10;未決済ポジション一覧&#10;（コレクションオブジェクト）" style="rounded=1;whiteSpace=wrap;arcSize=20;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;align=center;verticalAlign=middle;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1030" y="540" width="180" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow1" value="渡す" style="endArrow=open;dashed=1;strokeColor=#666666;fontSize=10;fontColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fillColor=#f5f5f5;" parent="1" source="entryCmd" target="entryExec" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow2" value="渡す" style="endArrow=open;dashed=1;strokeColor=#666666;fontSize=10;fontColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fillColor=#f5f5f5;" parent="1" source="exitCmd" target="exitExec" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow3" value="uses" style="endArrow=open;dashed=1;strokeColor=#666666;fontSize=10;fontColor=#FFFFFF;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;fillColor=#f5f5f5;" parent="1" source="entryExec" target="broker" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow4" value="uses" style="endArrow=open;dashed=1;strokeColor=#666666;fontSize=10;fontColor=#FFFFFF;exitX=0.7;exitY=1;exitDx=0;exitDy=0;entryX=0.2;entryY=0;entryDx=0;entryDy=0;fillColor=#f5f5f5;" parent="1" source="entryExec" target="posRepo" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow5" value="uses" style="endArrow=open;dashed=1;strokeColor=#666666;fontSize=10;fontColor=#FFFFFF;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.8;entryY=0;entryDx=0;entryDy=0;fillColor=#f5f5f5;" parent="1" source="exitExec" target="broker" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow6" value="uses" style="endArrow=open;dashed=1;strokeColor=#666666;fontSize=10;fontColor=#FFFFFF;exitX=0.7;exitY=1;exitDx=0;exitDy=0;entryX=0.7;entryY=0;entryDx=0;entryDy=0;fillColor=#f5f5f5;" parent="1" source="exitExec" target="posRepo" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="marketDataPort" value="&lt;&lt;interface&gt;&gt;&#10;MarketDataPort" style="swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="680" width="340" height="112" as="geometry"/>
+                </mxCell>
+                <mxCell id="marketDataPortMethods" value="+ connect(): Promise&lt;void&gt;&#10;+ disconnect(): Promise&lt;void&gt;&#10;+ subscribe(onTick: (tick: Tick) =&gt; void): () =&gt; void" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=11;fontColor=#000000;" parent="marketDataPort" vertex="1">
+                    <mxGeometry y="45" width="340" height="67" as="geometry"/>
+                </mxCell>
+                <mxCell id="marketDataPortNote" value="市場データ取得のPort&#10;WebSocket等のインフラ詳細を隠蔽&#10;実装はAdapter層が担う&#10;connect/disconnectで接続管理&#10;subscribeはコールバック型で技術非依存を保つ&#10;戻り値の関数を呼ぶと購読解除" style="shape=note;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="500" y="696" width="230" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="marketDataPortNoteArr" style="dashed=1;endArrow=none;strokeColor=#d6b656;fontColor=#000000;" parent="1" source="marketDataPortNote" target="marketDataPort" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

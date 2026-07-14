@@ -1,0 +1,102 @@
+<mxfile host="65bd71144e">
+    <diagram name="AllocationPolicy" id="pm-allocation">
+        <mxGraphModel dx="973" dy="524" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="2000" pageHeight="1500" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="bg" value="" style="whiteSpace=wrap;html=1;fontColor=#333333;fillColor=#f5f5f5;strokeColor=#666666;labelBackgroundColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="10" y="10" width="1980" height="1470" as="geometry"/>
+                </mxCell>
+                <mxCell id="title" value="PositionManager / domain層 — AllocationPolicy（配分判断のドメインサービス）" style="text;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="20" width="1400" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="subtitle" value="上段=入力VO／中段=Context・結果／下段=Policy＋初期実装。将来差し替え候補は右下に薄く配置" style="text;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=0;fontColor=#555555;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="56" width="1400" height="22" as="geometry"/>
+                </mxCell>
+                <mxCell id="rowInputs" value="入力材料（別図の VO を再掲）" style="shape=mxgraph.basic.rect;fillColor=#fce4d6;strokeColor=#e6873e;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=4;rounded=1;arcSize=4;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="100" width="1380" height="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="ratio" value="Ratio 比率（再掲）" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="60" y="130" width="300" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="ratioContent" value="value: Big（10桁切り捨て）&#10;EPSILON = 1e-9&#10;{0 &lt;= value &lt;= 1}&#10;--&#10;+ of / + zero / + one&#10;+ add / + addUnchecked / + times&#10;+ applyTo(lot): Lot" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=10;fontColor=#000000;" parent="ratio" vertex="1">
+                    <mxGeometry y="30" width="300" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="balanceRef" value="Balance（別図参照）" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;fontColor=#555555;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="380" y="130" width="300" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="balanceRefContent" value="value: Money&#10;{value-objects-and-lot-policy.drawio 参照}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#f5f5f5;strokeColor=none;fontSize=10;fontColor=#555555;" parent="balanceRef" vertex="1">
+                    <mxGeometry y="30" width="300" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="detectedSig" value="DetectedSignals 検知シグナル群" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="700" y="130" width="320" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="detectedSigContent" value="strategies: StrategyName[]（薄ラッパ）&#10;{重複なし、評価順を保つ}&#10;--&#10;+ of(strategies) / + empty()&#10;+ contains(s) / + size() / + isEmpty()&#10;+ strategies(): StrategyName[]&#10;{詳細は aggregation-vos.drawio}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=10;fontColor=#000000;" parent="detectedSig" vertex="1">
+                    <mxGeometry y="30" width="320" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="positions" value="OpenPositions 保有ポジション集合" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1040" y="130" width="350" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="positionsContent" value="- items: Position[]&#10;{(pair, strategy_name) で OPEN は最大 1 本}&#10;--&#10;+ openOf(pair, strategy): Position | null&#10;+ totalRequiredMargin(): Money&#10;+ sortedByOpenedAtAsc()" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=10;fontColor=#000000;" parent="positions" vertex="1">
+                    <mxGeometry y="30" width="350" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="allocCtx" value="AllocationContext&#10;Policy の入力（パラメータオブジェクト）" style="swimlane;fontStyle=1;align=center;startSize=45;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="646" y="391" width="420" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="allocCtxContent" value="detectedSignals: DetectedSignals&#10;currentPositions: OpenPositions&#10;balance: Balance（利用可能残高、availableAmount 由来）&#10;--&#10;+ of(detected, openPositions, balance)&#10;    : AllocationContext&#10;{balance は『利用可能残高』。policies.md 1.6.2}&#10;{将来 ConvictionScores 追加はここに足すだけ}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#dae8fc;strokeColor=none;fontSize=11;fontColor=#000000;" parent="allocCtx" vertex="1">
+                    <mxGeometry y="45" width="420" height="155" as="geometry"/>
+                </mxCell>
+                <mxCell id="lotAlloc" value="LotAllocation 配分結果（値オブジェクト）" style="swimlane;fontStyle=1;align=center;startSize=45;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="57" y="367" width="560" height="240" as="geometry"/>
+                </mxCell>
+                <mxCell id="lotAllocContent" value="- ratios: Map&lt;StrategyNameValue, Ratio&gt;&#10;{不変条件: 合計 = 1.0、|sum-1| &lt;= Ratio.EPSILON}&#10;{全戦略抑制時のみ合計 0.0 を許容}&#10;{Map は外に露出させない（憲法 6.10）}&#10;--&#10;+ of(entries): LotAllocation&#10;+ suppressed(strategies): LotAllocation（全戦略ゼロ）&#10;+ ratioOf(strategy): Ratio&#10;+ isSuppressed(strategy): bool&#10;+ isFullySuppressed(): bool&#10;+ apply(baseLot: Lot): StrategyLots&#10;+ strategies(): StrategyName[]" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=11;fontColor=#000000;" parent="lotAlloc" vertex="1">
+                    <mxGeometry y="45" width="560" height="195" as="geometry"/>
+                </mxCell>
+                <mxCell id="policyIf" value="&lt;&lt;interface&gt;&gt;&#10;AllocationPolicy" style="swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="200" y="660" width="600" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="policyIfContent" value="+ decide(context: AllocationContext): LotAllocation&#10;--&#10;{純粋ドメインサービス。I/O を持たない}&#10;{検知シグナル・保有・利用可能残高 → 配分}&#10;{LotPolicy.decide(input) と命名対称}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=12;fontColor=#000000;" parent="policyIf" vertex="1">
+                    <mxGeometry y="45" width="600" height="95" as="geometry"/>
+                </mxCell>
+                <mxCell id="equalWeight" value="EqualWeightAllocationPolicy&#10;（初期実装 / 今回スコープ）" style="swimlane;fontStyle=1;align=center;startSize=45;strokeWidth=2;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="180" y="880" width="640" height="280" as="geometry"/>
+                </mxCell>
+                <mxCell id="equalWeightContent" value="+ decide(context): LotAllocation&#10;--&#10;ロジック（残余寄せ / N-H5）:&#10; 1. n = detectedSignals.size()&#10; 2. r = (1 / n).round(10, RoundDown)&#10; 3. 先頭 n-1 戦略に r を割り当て&#10; 4. 末尾戦略に 1 - (n-1) × r（残余）を割り当て&#10; 5. 合計 = 1.0 を厳密に保ったまま LotAllocation.of に渡す&#10;--&#10;{合計ロット上限超過時のスケールダウンは PositionManager 側の責務}&#10;{Allocation 段では行わない（policies.md 1.11）}&#10;--&#10;{無知に対する最適解（DeMiguel 2009）}&#10;{Kelly 誤差ペナルティも小さい}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#d5e8d4;strokeColor=none;fontSize=11;fontColor=#000000;" parent="equalWeight" vertex="1">
+                    <mxGeometry y="45" width="640" height="235" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrCtxDetected" value="detectedSignals" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=diamond;endFill=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.7;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="allocCtx" target="detectedSig" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrCtxPositions" value="currentPositions" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=diamond;endFill=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.9;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="allocCtx" target="positions" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrCtxBalance" value="balance" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=diamond;endFill=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.3;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="allocCtx" target="balanceRef" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrLotAllocRatio" value="ratioOf returns" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#666666;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=0.278;exitY=0.003;exitDx=0;exitDy=0;exitPerimeter=0;" parent="1" source="lotAlloc" target="ratio" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="213" y="344"/>
+                            <mxPoint x="213" y="331"/>
+                            <mxPoint x="210" y="331"/>
+                        </Array>
+                        <mxPoint x="196" y="370" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="arrPolicyInput" value="input" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#666666;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.885;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitPerimeter=0;" parent="1" source="policyIf" target="allocCtx" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrPolicyReturns" value="returns" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#666666;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.25;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="policyIf" target="lotAlloc" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="337" y="660"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="arrImplEqual" value="implements" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=0;dashed=1;strokeColor=#444444;strokeWidth=2;labelBackgroundColor=#ffffff;fontSize=11;fontColor=#000000;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="equalWeight" target="policyIf" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

@@ -1,0 +1,72 @@
+<mxfile host="65bd71144e">
+    <diagram name="指標計算 クラス図" id="market-data-indicator">
+        <mxGraphModel dx="443" dy="374" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="bg" value="" style="whiteSpace=wrap;fontColor=#333333;fillColor=#f5f5f5;strokeColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry width="950" height="712" as="geometry"/>
+                </mxCell>
+                <mxCell id="title" value="指標計算 クラス図" style="text;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#333333;" parent="1" vertex="1">
+                    <mxGeometry x="20" y="10" width="300" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="indicator_if" value="&lt;&lt;interface&gt;&gt;&#10;Indicator" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="70" width="340" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="indicator_if_content" value="+ warmUp(candles: ConfirmedCandle[]): void&#10;+ onCandleConfirmed(candle: ConfirmedCandle): void&#10;+ onCandleUpdated(candle: FormingCandle): void" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=11;fontColor=#000000;" parent="indicator_if" vertex="1">
+                    <mxGeometry y="40" width="340" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="ledger" value="IndicatorLedger&#10;指標台帳（Composite）" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="330" width="340" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="ledgerContent" value="- indicators: Indicator[]&#10;--&#10;+ register(indicator: Indicator): void&#10;+ warmUp(candles: ConfirmedCandle[]): void&#10;+ onCandleConfirmed(candle: ConfirmedCandle): void&#10;+ onCandleUpdated(candle: FormingCandle): void" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#d5e8d4;strokeColor=none;fontSize=11;fontColor=#000000;" parent="ledger" vertex="1">
+                    <mxGeometry y="40" width="340" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="5" style="edgeStyle=none;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;fontColor=#FFFFFF;" edge="1" parent="1" source="note1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="200.11764705882365" y="266.7647058823529" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="note1" value="IndicatorLedgerはCompositeパターンで&#10;全Indicatorを保持し、一括更新する。&#10;値の取得は各Ruleが直接Indicatorに問い合わせる。&#10;IndicatorLedgerは更新のみ担当" style="shape=note;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;whiteSpace=wrap;size=14;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="265" width="340" height="65" as="geometry"/>
+                </mxCell>
+                <mxCell id="note1_arr" style="strokeColor=#d6b656;dashed=1;endArrow=none;" parent="1" source="note1" target="ledger" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_ledger_indicator" value="implements" style="endArrow=block;endFill=0;dashed=1;strokeColor=#666666;fontSize=10;fontColor=#FFFFFF;" parent="1" source="note1" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="200" y="178" as="targetPoint"/>
+                        <Array as="points"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="arr_ledger_has_indicator" value="has *" style="endArrow=open;endFill=0;strokeColor=#333333;fontSize=10;fontColor=#FFFFFF;exitX=1;exitY=0.2;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="ledger" target="indicator_if" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="400" y="290"/>
+                            <mxPoint x="400" y="125"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <!-- IndicatorValues は廃止。Rule がコンストラクタで Indicator を直接受け取る -->
+                <mxCell id="design_note" value="【案C採用】IndicatorValues は廃止&#10;&#10;Rule は必要な Indicator をコンストラクタで&#10;直接受け取る。&#10;&#10;例: RsiReversalEntryRule(rsi: RsiIndicator)&#10;例: SmaCrossEntryRule(sma: SmaIndicator)&#10;&#10;Indicator の値取得は Rule の責務。&#10;IndicatorLedger は Indicator の更新&#10;（warmUp, onCandleConfirmed）だけを担う。&#10;&#10;「全指標の寄せ集め」はドメインの概念ではない。&#10;指標追加時に既存コードの変更が不要になる" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fff8e1;strokeColor=#f9a825;fontSize=11;fontColor=#5d4037;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="480" y="70" width="340" height="230" as="geometry"/>
+                </mxCell>
+                <mxCell id="refConfirmed" value="ConfirmedCandle&#10;(market-data-candle.drawio)" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#f5f5f5;strokeColor=#999999;dashed=1;fontSize=11;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="23" y="616" width="240" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="refForming" value="FormingCandle&#10;(market-data-candle.drawio)" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#f5f5f5;strokeColor=#999999;dashed=1;fontSize=11;fontColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="300" y="616" width="240" height="50" as="geometry"/>
+                </mxCell>
+                <!-- a1: IndicatorValues への creates 矢印は廃止（案C採用） -->
+                <mxCell id="a2" value="uses" style="endArrow=open;dashed=1;strokeColor=#666666;fontSize=10;fontColor=#FFFFFF;exitX=0.2;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="ledger" target="refConfirmed" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="a3" value="uses" style="endArrow=open;dashed=1;strokeColor=#666666;fontSize=10;fontColor=#FFFFFF;exitX=0.7;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="ledger" target="refForming" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <!-- a4, a5: IndicatorValues → SmaSnapshot → SmaValue の矢印は廃止（案C採用） -->
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

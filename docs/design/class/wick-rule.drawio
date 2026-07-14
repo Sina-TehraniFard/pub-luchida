@@ -1,0 +1,84 @@
+<mxfile host="65bd71144e">
+    <diagram name="Wick Reversal Rule Class Diagram" id="wick_rule_class">
+        <mxGraphModel dx="1104" dy="1186" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="bg" value="" style="whiteSpace=wrap;html=1;shadow=1;fillColor=#d5e8d4;strokeColor=#82b366;" parent="1" vertex="1">
+                    <mxGeometry x="52" y="-36" width="1100" height="720" as="geometry"/>
+                </mxCell>
+                <mxCell id="title" value="ヒゲ逆張り戦略 クラス図" style="text;align=center;verticalAlign=middle;fontSize=20;fontStyle=1;fontColor=#333;shadow=1;" parent="1" vertex="1">
+                    <mxGeometry x="344" y="-4" width="400" height="35" as="geometry"/>
+                </mxCell>
+
+                <!-- EntryRule 参照ボックス（破線・グレー） -->
+                <mxCell id="entry_rule_ref" value="&lt;&lt;interface&gt;&gt;&#10;EntryRule&#10;（rule-layer.drawio 参照）" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#f5f5f5;strokeColor=#999;startSize=60;fontColor=#666;dashed=1;dashPattern=8 4;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="60" width="320" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="entry_rule_ref_method" value="+ shouldEntry(snapshot: MarketSnapshot)&#10;    : EntryCommand | DoNothing" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#999;" parent="entry_rule_ref" vertex="1">
+                    <mxGeometry y="60" width="320" height="40" as="geometry"/>
+                </mxCell>
+
+                <!-- ExitRule 参照ボックス（破線・グレー） -->
+                <mxCell id="exit_rule_ref" value="&lt;&lt;interface&gt;&gt;&#10;ExitRule&#10;（rule-layer.drawio 参照）" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#f5f5f5;strokeColor=#999;startSize=60;fontColor=#666;dashed=1;dashPattern=8 4;" parent="1" vertex="1">
+                    <mxGeometry x="80" y="400" width="320" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="exit_rule_ref_method" value="+ shouldExit(snapshot: MarketSnapshot,&#10;    position: Position)&#10;    : ExitCommand | DoNothing" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#999;" parent="exit_rule_ref" vertex="1">
+                    <mxGeometry y="60" width="320" height="50" as="geometry"/>
+                </mxCell>
+
+                <!-- WickReversalEntryRule -->
+                <mxCell id="wick_entry" value="WickReversalEntryRule" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#dae8fc;strokeColor=#6c8ebf;startSize=30;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="540" y="60" width="370" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="wick_entry_pkg" value="domain/rule/wick" style="text;align=left;verticalAlign=top;fontSize=11;fontColor=#6c8ebf;fontStyle=2;" parent="wick_entry" vertex="1">
+                    <mxGeometry y="30" width="370" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="wick_entry_sep" value="" style="line;strokeColor=#6c8ebf;" parent="wick_entry" vertex="1">
+                    <mxGeometry y="50" width="370" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="wick_entry_method" value="+ shouldEntry(snapshot: MarketSnapshot)&#10;    : EntryCommand | DoNothing&#10;&#10;20pips 以上のヒゲ → 逆方向にエントリー" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="wick_entry" vertex="1">
+                    <mxGeometry y="58" width="370" height="80" as="geometry"/>
+                </mxCell>
+
+                <!-- WickReversalExitRule -->
+                <mxCell id="wick_exit" value="WickReversalExitRule" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#dae8fc;strokeColor=#6c8ebf;startSize=30;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="540" y="400" width="370" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="wick_exit_pkg" value="domain/rule/wick" style="text;align=left;verticalAlign=top;fontSize=11;fontColor=#6c8ebf;fontStyle=2;" parent="wick_exit" vertex="1">
+                    <mxGeometry y="30" width="370" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="wick_exit_sep" value="" style="line;strokeColor=#6c8ebf;" parent="wick_exit" vertex="1">
+                    <mxGeometry y="50" width="370" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="wick_exit_method" value="+ shouldExit(snapshot: MarketSnapshot,&#10;    position: Position)&#10;    : ExitCommand | DoNothing&#10;&#10;次の足で決済（タイムストップ 1本）" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="wick_exit" vertex="1">
+                    <mxGeometry y="58" width="370" height="70" as="geometry"/>
+                </mxCell>
+
+                <!-- implements 矢印 -->
+                <mxCell id="arr_impl_entry" value="implements" style="endArrow=block;endFill=0;dashed=1;strokeColor=#6c8ebf;fontSize=11;fontColor=#6c8ebf;fontStyle=2;" parent="1" source="wick_entry" target="entry_rule_ref" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_impl_exit" value="implements" style="endArrow=block;endFill=0;dashed=1;strokeColor=#6c8ebf;fontSize=11;fontColor=#6c8ebf;fontStyle=2;" parent="1" source="wick_exit" target="exit_rule_ref" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- 付箋: ヒゲの説明 -->
+                <mxCell id="wick_note" value="「ヒゲ」= ローソク足の実体から上下に伸びた線&#10;&#10;上ヒゲが長い → 一度上がったが押し戻された&#10;　→ 売り圧力が強い → SELL&#10;下ヒゲが長い → 一度下がったが押し戻された&#10;　→ 買い圧力が強い → BUY&#10;&#10;20pips 以上の長いヒゲを「強い反発サイン」とみなす" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="540" y="230" width="370" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="wick_note_arr" style="strokeColor=#d6b656;dashed=1;endArrow=none;" parent="1" source="wick_note" target="wick_entry" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- 付箋: タイムストップの説明 -->
+                <mxCell id="ts_note" value="「タイムストップ」= 時間で決済する方式&#10;&#10;ヒゲの反発は短時間で起きるため&#10;次の足（1本分）が終わったら結果に関係なく決済する&#10;長く持ち続けるリスクを避ける" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="540" y="560" width="370" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="ts_note_arr" style="strokeColor=#d6b656;dashed=1;endArrow=none;" parent="1" source="ts_note" target="wick_exit" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

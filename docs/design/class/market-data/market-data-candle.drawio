@@ -1,0 +1,89 @@
+<mxfile host="65bd71144e">
+    <diagram name="足組立 クラス図" id="market-data-candle">
+        <mxGraphModel dx="1104" dy="786" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="bg" value="" style="whiteSpace=wrap;html=1;fontColor=#333333;fillColor=#f5f5f5;strokeColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry width="1100" height="700" as="geometry"/>
+                </mxCell>
+                <mxCell id="title" value="足組立 クラス図" style="text;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#333333;" parent="1" vertex="1">
+                    <mxGeometry x="1" y="5" width="1098" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="accumulator" value="CandleAccumulator&#10;足組立係" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="70" width="340" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="accContent" value="currentCandle: FormingCandle&#10;timeFrame: TimeFrame&#10;--&#10;+ seedHistory(candles: ConfirmedCandle[]): void&#10;+ accumulate(tick: Tick): CandleEvent" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#d5e8d4;strokeColor=none;fontSize=11;fontColor=#000000;" parent="accumulator" vertex="1">
+                    <mxGeometry y="40" width="340" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="accNote" value="tickのtimestampと時間枠の関係だけを知る&#10;CandleEvent = CandleConfirmed | CandleUpdated" style="shape=note;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;whiteSpace=wrap;size=14;" parent="1" vertex="1">
+                    <mxGeometry x="370" y="70" width="340" height="65" as="geometry"/>
+                </mxCell>
+                <mxCell id="candleConfirmed" value="CandleConfirmed" style="rounded=1;whiteSpace=wrap;arcSize=20;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=center;verticalAlign=middle;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="370" y="175" width="160" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="candleUpdated" value="CandleUpdated" style="rounded=1;whiteSpace=wrap;arcSize=20;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;align=center;verticalAlign=middle;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="550" y="175" width="160" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="candleEventLabel" value="CandleEvent（戻り値の種類）" style="text;align=center;fontSize=10;fontColor=#5a8a3c;" parent="1" vertex="1">
+                    <mxGeometry x="370" y="155" width="340" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="forming" value="FormingCandle&#10;未確定足" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="370" width="320" height="280" as="geometry"/>
+                </mxCell>
+                <mxCell id="formingContent" value="open: Price&#10;high: Price&#10;low: Price&#10;close: Price&#10;openTime: CandleOpenTime&#10;timeFrame: TimeFrame&#10;--&#10;+ update(tick: Tick): FormingCandle&#10;+ confirm(): ConfirmedCandle" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=11;fontColor=#000000;" parent="forming" vertex="1">
+                    <mxGeometry y="40" width="320" height="240" as="geometry"/>
+                </mxCell>
+                <mxCell id="confirmed" value="ConfirmedCandle&#10;確定足" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="410" y="370" width="320" height="250" as="geometry"/>
+                </mxCell>
+                <mxCell id="confirmedContent" value="open: Price&#10;high: Price&#10;low: Price&#10;close: Price&#10;openTime: CandleOpenTime&#10;closeTime: CandleCloseTime&#10;timeFrame: TimeFrame" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=11;fontColor=#000000;" parent="confirmed" vertex="1">
+                    <mxGeometry y="40" width="320" height="210" as="geometry"/>
+                </mxCell>
+                <mxCell id="confirmedNote" value="不変オブジェクト。一度確定したら変わらない" style="shape=note;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;whiteSpace=wrap;size=14;" parent="confirmed" vertex="1">
+                    <mxGeometry y="215" width="320" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="voGroup" value="基本値オブジェクト" style="shape=mxgraph.basic.rect;fillColor=#fce4d6;strokeColor=#e6873e;fontSize=14;fontStyle=1;verticalAlign=top;spacingTop=5;dashed=0;rounded=1;arcSize=8;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="780" y="70" width="290" height="520" as="geometry"/>
+                </mxCell>
+                <mxCell id="voTick" value="Tick&#10;ask: Price, bid: Price&#10;timestamp: TickTimestamp" style="rounded=1;whiteSpace=wrap;arcSize=20;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=center;verticalAlign=middle;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="825" y="120" width="200" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="voPrice" value="Price&#10;value: BigDecimal" style="rounded=1;whiteSpace=wrap;arcSize=20;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=center;verticalAlign=middle;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="825" y="200" width="200" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="voTimeFrame" value="TimeFrame&#10;ONE_MINUTE / ONE_HOUR / ONE_DAY" style="rounded=1;whiteSpace=wrap;arcSize=20;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=center;verticalAlign=middle;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="825" y="270" width="200" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="voTickTs" value="TickTimestamp" style="rounded=1;whiteSpace=wrap;arcSize=20;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=center;verticalAlign=middle;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="825" y="345" width="200" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="voCandleOpen" value="CandleOpenTime" style="rounded=1;whiteSpace=wrap;arcSize=20;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=center;verticalAlign=middle;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="825" y="405" width="200" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="voCandleClose" value="CandleCloseTime" style="rounded=1;whiteSpace=wrap;arcSize=20;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=center;verticalAlign=middle;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="825" y="465" width="200" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="a1" value="uses" style="endArrow=open;dashed=1;strokeColor=#666666;fontSize=10;fontColor=#FFFFFF;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="accumulator" target="forming" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="132" y="340"/>
+                            <mxPoint x="190" y="340"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="a2" value="creates" style="endArrow=open;dashed=1;strokeColor=#666666;fontSize=10;fontColor=#FFFFFF;exitX=0.8;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="accumulator" target="confirmed" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="302" y="340"/>
+                            <mxPoint x="570" y="340"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="a3" value="confirm()" style="endArrow=open;dashed=1;strokeColor=#666666;fontSize=10;fontColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="forming" target="confirmed" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Luchida — アーキテクチャマップ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Fira+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0F172A;
+    color: #F8FAFC;
+    font-family: 'Fira Sans', sans-serif;
+    min-height: 100vh;
+    padding: 32px 24px;
+  }
+  .container { max-width: 1400px; margin: 0 auto; }
+  .header { text-align: center; margin-bottom: 40px; }
+  .header h1 { font-size: 22px; font-weight: 700; text-shadow: 0 0 10px rgba(248,250,252,0.15); margin-bottom: 6px; }
+  .header p { font-size: 13px; color: #94A3B8; }
+  .header .accent { color: #F59E0B; font-family: 'Fira Code', monospace; }
+
+  .layer { margin-bottom: 16px; border-radius: 12px; background: #1E293B; border-left: 4px solid; }
+  .layer-header { display: flex; align-items: baseline; gap: 16px; padding: 14px 20px 6px; }
+  .layer-name { font-size: 20px; font-weight: 700; text-shadow: 0 0 10px currentColor; }
+  .layer-path-root { font-family: 'Fira Code', monospace; font-size: 12px; color: #64748B; }
+  .layer-desc { font-size: 13px; color: #CBD5E1; line-height: 1.5; padding: 0 20px 10px; }
+
+  .dep-arrow { text-align: center; padding: 4px 0; font-family: 'Fira Code', monospace; font-size: 13px; opacity: 0.5; user-select: none; }
+
+  .tree { padding: 0 20px 16px; }
+  .tree table { width: 100%; border-collapse: collapse; }
+  .tree td { padding: 3px 0; font-size: 12px; vertical-align: top; }
+  .tree .td-file { font-family: 'Fira Code', monospace; white-space: nowrap; padding-right: 16px; width: 320px; }
+  .tree .td-desc { color: #94A3B8; font-size: 12px; }
+  .tree .dir-row .td-file { font-weight: 600; padding-top: 10px; }
+  .tree .dir-row .td-desc { padding-top: 10px; color: #64748B; font-size: 11px; }
+
+  .layer.domain { border-left-color: #F59E0B; }
+  .layer.domain .layer-name { color: #F59E0B; }
+  .layer.domain .dir-row .td-file { color: #F59E0B; }
+
+  .layer.port { border-left-color: #3B82F6; }
+  .layer.port .layer-name { color: #3B82F6; }
+  .layer.port .dir-row .td-file { color: #3B82F6; }
+
+  .layer.action { border-left-color: #22C55E; }
+  .layer.action .layer-name { color: #22C55E; }
+  .layer.action .dir-row .td-file { color: #22C55E; }
+
+  .layer.application { border-left-color: #F97316; }
+  .layer.application .layer-name { color: #F97316; }
+  .layer.application .dir-row .td-file { color: #F97316; }
+
+  .layer.adapter { border-left-color: #A855F7; }
+  .layer.adapter .layer-name { color: #A855F7; }
+  .layer.adapter .dir-row .td-file { color: #A855F7; }
+
+  .layer.infrastructure { border-left-color: #64748B; }
+  .layer.infrastructure .layer-name { color: #64748B; }
+  .layer.infrastructure .dir-row .td-file { color: #64748B; }
+
+  .layer.root { border-left-color: #94A3B8; }
+  .layer.root .layer-name { color: #94A3B8; }
+  .layer.root .dir-row .td-file { color: #94A3B8; }
+
+  /* Domain sub-cards grid */
+  .domain-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 10px;
+    padding: 0 16px 16px;
+  }
+  .domain-card {
+    background: #0F172A;
+    border-radius: 8px;
+    padding: 12px 16px;
+    border-left: 3px solid #F59E0B;
+  }
+  .domain-card-title {
+    font-family: 'Fira Code', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: #F59E0B;
+    margin-bottom: 4px;
+  }
+  .domain-card-desc {
+    font-size: 12px;
+    color: #64748B;
+    margin-bottom: 8px;
+  }
+  .domain-card table { width: 100%; border-collapse: collapse; }
+  .domain-card td { padding: 2px 0; font-size: 12px; vertical-align: top; }
+  .domain-card .td-file { font-family: 'Fira Code', monospace; white-space: nowrap; padding-right: 12px; color: #CBD5E1; width: 260px; }
+  .domain-card .td-desc { color: #94A3B8; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>Luchida — アーキテクチャマップ</h1>
+    <p>依存の方向: <span class="accent">外側 → 内側</span> に依存する。内側は外側を知らない。</p>
+  </div>
+
+  <!-- ===== Domain ===== -->
+  <div class="layer domain">
+    <div class="layer-header">
+      <span class="layer-name">Domain</span>
+      <span class="layer-path-root">domain/</span>
+    </div>
+    <p class="layer-desc">最内核。値オブジェクト、エンティティ、売買ルール、コマンド。外部依存なし。</p>
+    <div class="domain-grid">
+
+      <div class="domain-card">
+        <div class="domain-card-title">rule/</div>
+        <div class="domain-card-desc">売買判断ルール。エントリーと決済の判定</div>
+        <table>
+          <tr><td class="td-file">EntryRule.ts</td><td class="td-desc">エントリー判定を実装するクラスのインターフェース</td></tr>
+          <tr><td class="td-file">ExitRule.ts</td><td class="td-desc">決済判定を実装するクラスのインターフェース</td></tr>
+        </table>
+      </div>
+
+      <div class="domain-card">
+        <div class="domain-card-title">rule/sma-cross/</div>
+        <div class="domain-card-desc">SMAクロス戦略</div>
+        <table>
+          <tr><td class="td-file">SmaCrossEntryRule.ts</td><td class="td-desc">ゴールデン/デッドクロスでエントリー判定</td></tr>
+          <tr><td class="td-file">SmaCrossExitRule.ts</td><td class="td-desc">逆クロスで決済判定</td></tr>
+          <tr><td class="td-file">SmaCrossSignal.ts</td><td class="td-desc">2本のSMAがクロスしたか検出</td></tr>
+        </table>
+      </div>
+
+      <div class="domain-card">
+        <div class="domain-card-title">rule/shared/</div>
+        <div class="domain-card-desc">戦略をまたいで共用するルール</div>
+        <table>
+          <tr><td class="td-file">FixedStopLossExitRule.ts</td><td class="td-desc">固定pipsで損切りする決済ルール</td></tr>
+        </table>
+      </div>
+
+      <div class="domain-card">
+        <div class="domain-card-title">command/</div>
+        <div class="domain-card-desc">Ruleの判定結果を命令として表現</div>
+        <table>
+          <tr><td class="td-file">EntryCommand.ts</td><td class="td-desc">エントリー命令（通貨ペア、売買方向、ロット）</td></tr>
+          <tr><td class="td-file">ExitCommand.ts</td><td class="td-desc">決済命令（対象ポジション、理由）</td></tr>
+          <tr><td class="td-file">DoNothing.ts</td><td class="td-desc">エントリー/決済条件未成立の判定結果</td></tr>
+          <tr><td class="td-file">EntryReason.ts</td><td class="td-desc">なぜエントリーしたかの理由テキスト</td></tr>
+          <tr><td class="td-file">ExitReason.ts</td><td class="td-desc">なぜ決済したかの理由テキスト</td></tr>
+        </table>
+      </div>
+
+      <div class="domain-card">
+        <div class="domain-card-title">market/</div>
+        <div class="domain-card-desc">市場データの値オブジェクト群</div>
+        <table>
+          <tr><td class="td-file">BuySell.ts</td><td class="td-desc">「買い」か「売り」の2択</td></tr>
+          <tr><td class="td-file">CurrencyPair.ts</td><td class="td-desc">通貨ペア（USD/JPY等）</td></tr>
+          <tr><td class="td-file">Price.ts</td><td class="td-desc">価格（小数点以下の精度を保証）</td></tr>
+          <tr><td class="td-file">Pips.ts</td><td class="td-desc">値幅（何pips動いたか）</td></tr>
+          <tr><td class="td-file">Spread.ts</td><td class="td-desc">bid/askの価格差</td></tr>
+          <tr><td class="td-file">TimeFrame.ts</td><td class="td-desc">時間足の種類（1分/15分/1時間/日足）</td></tr>
+          <tr><td class="td-file">Timestamp.ts</td><td class="td-desc">時刻（ミリ秒精度）</td></tr>
+          <tr><td class="td-file">ConvictionScore.ts</td><td class="td-desc">シグナルの確信度（0〜1）</td></tr>
+          <tr><td class="td-file">EntryResult.ts</td><td class="td-desc">注文が通った結果（約定価格等）</td></tr>
+          <tr><td class="td-file">ExitResult.ts</td><td class="td-desc">決済が通った結果（損益等）</td></tr>
+          <tr><td class="td-file">TimeFrameBook.ts</td><td class="td-desc">複数時間足のデータをまとめて管理</td></tr>
+        </table>
+      </div>
+
+      <div class="domain-card">
+        <div class="domain-card-title">market/candle/</div>
+        <div class="domain-card-desc">tickからローソク足を組み立てる</div>
+        <table>
+          <tr><td class="td-file">CandleAccumulator.ts</td><td class="td-desc">tickを溜めてローソク足を組み立てる</td></tr>
+          <tr><td class="td-file">ConfirmedCandle.ts</td><td class="td-desc">確定済みローソク足（もう変わらない）</td></tr>
+          <tr><td class="td-file">FormingCandle.ts</td><td class="td-desc">形成中ローソク足（まだ動いている）</td></tr>
+          <tr><td class="td-file">CandleEvent.ts</td><td class="td-desc">足が更新/確定したイベント</td></tr>
+          <tr><td class="td-file">CandleOpenTime.ts</td><td class="td-desc">足の始まり時刻</td></tr>
+          <tr><td class="td-file">CandleCloseTime.ts</td><td class="td-desc">足の終わり時刻</td></tr>
+        </table>
+      </div>
+
+      <div class="domain-card">
+        <div class="domain-card-title">market/indicator/</div>
+        <div class="domain-card-desc">テクニカル指標の計算と保持</div>
+        <table>
+          <tr><td class="td-file">IndicatorLedger.ts</td><td class="td-desc">SMA等の指標を足確定ごとに計算・記録</td></tr>
+          <tr><td class="td-file">IndicatorConfig.ts</td><td class="td-desc">指標の設定（SMAの期間等）</td></tr>
+          <tr><td class="td-file">IndicatorValues.ts</td><td class="td-desc">計算済み指標値のセット</td></tr>
+          <tr><td class="td-file">SmaCalculator.ts</td><td class="td-desc">SMA計算を実装するクラスのインターフェース</td></tr>
+          <tr><td class="td-file">SmaSnapshot.ts</td><td class="td-desc">SMA(20)とSMA(100)の現在値セット</td></tr>
+          <tr><td class="td-file">SmaValue.ts</td><td class="td-desc">SMAの値オブジェクト</td></tr>
+        </table>
+      </div>
+
+      <div class="domain-card">
+        <div class="domain-card-title">market/snapshot/</div>
+        <div class="domain-card-desc">ある時点の市場データ一式</div>
+        <table>
+          <tr><td class="td-file">MarketSnapshot.ts</td><td class="td-desc">全時間足の現在値をまとめたスナップショット</td></tr>
+          <tr><td class="td-file">TimeFrameSnapshot.ts</td><td class="td-desc">1つの時間足のtick+足+指標</td></tr>
+        </table>
+      </div>
+
+      <div class="domain-card">
+        <div class="domain-card-title">market/tick/</div>
+        <div class="domain-card-desc">リアルタイム価格</div>
+        <table>
+          <tr><td class="td-file">Tick.ts</td><td class="td-desc">最新のbid/ask価格</td></tr>
+          <tr><td class="td-file">TickTimestamp.ts</td><td class="td-desc">tick受信時刻</td></tr>
+        </table>
+      </div>
+
+      <div class="domain-card">
+        <div class="domain-card-title">position/</div>
+        <div class="domain-card-desc">ポジション管理</div>
+        <table>
+          <tr><td class="td-file">Position.ts</td><td class="td-desc">保有中/決済済みのポジション（エンティティ）</td></tr>
+          <tr><td class="td-file">PositionId.ts</td><td class="td-desc">ポジションの識別子</td></tr>
+          <tr><td class="td-file">Lot.ts</td><td class="td-desc">取引数量（1,000通貨単位）</td></tr>
+          <tr><td class="td-file">OpenPositions.ts</td><td class="td-desc">保有中ポジションの一覧</td></tr>
+        </table>
+      </div>
+
+      <div class="domain-card">
+        <div class="domain-card-title">error/</div>
+        <div class="domain-card-desc">ドメインエラー</div>
+        <table>
+          <tr><td class="td-file">BrokerError.ts</td><td class="td-desc">注文失敗時のエラー</td></tr>
+          <tr><td class="td-file">MarketDataError.ts</td><td class="td-desc">市場データ取得失敗時のエラー</td></tr>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="dep-arrow" style="color:#3B82F6;">↑ Port は Domain の型のみ使用</div>
+
+  <!-- ===== Port ===== -->
+  <div class="layer port">
+    <div class="layer-header">
+      <span class="layer-name">Port</span>
+      <span class="layer-path-root">port/</span>
+    </div>
+    <p class="layer-desc">外部接続のソースコードを実装するクラスのインターフェース。</p>
+    <p class="layer-desc" style="color:#94A3B8; font-size:12px;">インターフェースにする理由: テスト時にモックに差し替えられる。本番はGMO、テストはスタブ。Rule や Action が特定のAPI実装に依存しなくなる。</p>
+    <div class="tree"><table>
+      <tr><td class="td-file">Broker.ts</td><td class="td-desc">注文発注・決済を実装するクラスのインターフェース</td></tr>
+      <tr><td class="td-file">MarketDataPort.ts</td><td class="td-desc">tick受信を実装するクラスのインターフェース</td></tr>
+      <tr><td class="td-file">MarketDataStreamPort.ts</td><td class="td-desc">市場データ配信の開始/停止を実装するクラスのインターフェース</td></tr>
+      <tr><td class="td-file">CandleHistoryPort.ts</td><td class="td-desc">過去足取得を実装するクラスのインターフェース</td></tr>
+      <tr><td class="td-file">PositionRepository.ts</td><td class="td-desc">ポジションのDB永続化を実装するクラスのインターフェース</td></tr>
+      <tr><td class="td-file">UiNotifier.ts</td><td class="td-desc">フロントエンド通知を実装するクラスのインターフェース</td></tr>
+    </table></div>
+  </div>
+
+  <div class="dep-arrow" style="color:#22C55E;">↑ Action は Domain + Port に依存</div>
+
+  <!-- ===== Action ===== -->
+  <div class="layer action">
+    <div class="layer-header">
+      <span class="layer-name">Action</span>
+      <span class="layer-path-root">action/</span>
+    </div>
+    <p class="layer-desc">Portを使って1つの業務操作を実行する。注文を出す、決済する、ポジションを記録する。</p>
+    <div class="tree"><table>
+      <tr><td class="td-file">EntryExecution.ts</td><td class="td-desc">Brokerに注文を出し、PositionをDBに保存</td></tr>
+      <tr><td class="td-file">ExitExecution.ts</td><td class="td-desc">Brokerに決済を出し、Positionを更新</td></tr>
+    </table></div>
+  </div>
+
+  <div class="dep-arrow" style="color:#F97316;">↑ Application は Action + Port に依存</div>
+
+  <!-- ===== Application ===== -->
+  <div class="layer application">
+    <div class="layer-header">
+      <span class="layer-name">Application</span>
+      <span class="layer-path-root">application/</span>
+    </div>
+    <p class="layer-desc">市場データ受信→Rule評価→Action実行の全体制御。ビジネスロジックは持たない。</p>
+    <div class="tree"><table>
+      <tr><td class="td-file">TradingSession.ts</td><td class="td-desc">起動→市場監視→Rule評価→エントリー通知/自動決済の全体制御</td></tr>
+    </table></div>
+  </div>
+
+  <div class="dep-arrow" style="color:#A855F7;">↑ Adapter は Port を実装する</div>
+
+  <!-- ===== Adapter ===== -->
+  <div class="layer adapter">
+    <div class="layer-header">
+      <span class="layer-name">Adapter</span>
+      <span class="layer-path-root">adapter/</span>
+    </div>
+    <p class="layer-desc">Portのインターフェースを実装する。GMO APIの言葉を内部の言葉に翻訳する。</p>
+    <div class="tree"><table>
+      <tr class="dir-row"><td class="td-file">gmo/</td><td class="td-desc">GMO コイン外国為替 FX API の実装</td></tr>
+      <tr><td class="td-file">&nbsp;&nbsp;GmoBrokerAdapter.ts</td><td class="td-desc">GMO APIで注文を出す（Broker実装）</td></tr>
+      <tr><td class="td-file">&nbsp;&nbsp;GmoMarketDataAdapter.ts</td><td class="td-desc">GMO WebSocketからtickを受信（MarketDataPort実装）</td></tr>
+      <tr><td class="td-file">&nbsp;&nbsp;GmoCandleHistoryAdapter.ts</td><td class="td-desc">GMO APIから過去足を取得（CandleHistoryPort実装）</td></tr>
+      <tr><td class="td-file">&nbsp;&nbsp;GmoRestClient.ts</td><td class="td-desc">GMO REST APIとのHTTP通信処理</td></tr>
+      <tr><td class="td-file">&nbsp;&nbsp;GmoWebSocketClient.ts</td><td class="td-desc">GMO WebSocketの接続・再接続管理</td></tr>
+      <tr><td class="td-file">&nbsp;&nbsp;GmoApiError.ts</td><td class="td-desc">GMO API固有のエラー定義</td></tr>
+      <tr class="dir-row"><td class="td-file">indicator/</td><td class="td-desc">テクニカル指標ライブラリの実装</td></tr>
+      <tr><td class="td-file">&nbsp;&nbsp;TradingSignalsSmaCalculator.ts</td><td class="td-desc">trading-signalsライブラリでSMAを計算（SmaCalculator実装）</td></tr>
+    </table></div>
+  </div>
+
+  <div class="dep-arrow" style="color:#64748B;">↑ Infrastructure は Adapter + Port に依存</div>
+
+  <!-- ===== Infrastructure ===== -->
+  <div class="layer infrastructure">
+    <div class="layer-header">
+      <span class="layer-name">Infrastructure</span>
+      <span class="layer-path-root">infrastructure/</span>
+    </div>
+    <p class="layer-desc">データベース、サーバー、ログ。技術基盤そのもの。ドメイン非依存。</p>
+    <div class="tree"><table>
+      <tr><td class="td-file">MarketDataStream.ts</td><td class="td-desc">tickを受け取り→足組立→指標更新→snapshotを通知</td></tr>
+      <tr class="dir-row"><td class="td-file">database/</td><td class="td-desc">PostgreSQL</td></tr>
+      <tr><td class="td-file">&nbsp;&nbsp;connection.ts</td><td class="td-desc">DB接続を生成する</td></tr>
+      <tr><td class="td-file">&nbsp;&nbsp;PostgresPositionRepository.ts</td><td class="td-desc">ポジションをDBに保存/取得（PositionRepository実装）</td></tr>
+      <tr class="dir-row"><td class="td-file">&nbsp;&nbsp;schema/</td><td class="td-desc">テーブル定義（Drizzle ORM）</td></tr>
+      <tr><td class="td-file">&nbsp;&nbsp;&nbsp;&nbsp;positions.ts</td><td class="td-desc">positionsテーブルの定義</td></tr>
+      <tr><td class="td-file">&nbsp;&nbsp;&nbsp;&nbsp;positionEntrySnapshots.ts</td><td class="td-desc">エントリー時の指標値を記録するテーブル</td></tr>
+      <tr class="dir-row"><td class="td-file">logging/</td><td class="td-desc">ログ</td></tr>
+      <tr><td class="td-file">&nbsp;&nbsp;Logger.ts</td><td class="td-desc">ログ出力（レベル制御付き）</td></tr>
+      <tr class="dir-row"><td class="td-file">server/</td><td class="td-desc">HTTPサーバー</td></tr>
+      <tr><td class="td-file">&nbsp;&nbsp;ExpressServer.ts</td><td class="td-desc">REST API + Socket.IO サーバー</td></tr>
+      <tr><td class="td-file">&nbsp;&nbsp;SocketIoUiNotifier.ts</td><td class="td-desc">WebSocketでフロントに通知（UiNotifier実装）</td></tr>
+    </table></div>
+  </div>
+
+  <div class="dep-arrow" style="color:#94A3B8;">↑ main.ts が全てを組み立てる</div>
+
+  <!-- ===== Composition Root ===== -->
+  <div class="layer root">
+    <div class="layer-header">
+      <span class="layer-name">Composition Root</span>
+      <span class="layer-path-root">src/</span>
+    </div>
+    <p class="layer-desc">全レイヤーの依存関係を組み立てて起動する。全レイヤーへの依存を持つ唯一の場所。</p>
+    <div class="tree"><table>
+      <tr><td class="td-file">main.ts</td><td class="td-desc">全クラスを生成し、依存を注入して起動する</td></tr>
+      <tr><td class="td-file">index.ts</td><td class="td-desc">エントリーポイント（main.tsを呼ぶだけ）</td></tr>
+    </table></div>
+  </div>
+
+</div>
+</body>
+</html>

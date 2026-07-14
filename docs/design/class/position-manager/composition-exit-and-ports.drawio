@@ -1,0 +1,224 @@
+<mxfile host="65bd71144e">
+    <diagram name="Composition - Exit Flow &amp; Ports" id="pm-comp-exit-ports">
+        <mxGraphModel dx="1920" dy="1400" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="2000" pageHeight="1400" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="bg" value="" style="whiteSpace=wrap;html=1;fontColor=#333333;fillColor=#f5f5f5;strokeColor=#666666;labelBackgroundColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="10" y="10" width="1980" height="1350" as="geometry"/>
+                </mxCell>
+                <mxCell id="title" value="PositionManager 構成図 — 決済フロー + Port / Adapter" style="text;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="20" width="1400" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="subtitle" value="左レーン=決済フロー ／ 右レーン=port⇔adapter 実装関係（2 レーンを独立に配置して交差を抑える）" style="text;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=0;fontColor=#555555;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="56" width="1400" height="22" as="geometry"/>
+                </mxCell>
+
+                <!-- ====== レーン帯 ====== -->
+                <mxCell id="laneExit" value="左レーン: 決済フロー" style="shape=mxgraph.basic.rect;fillColor=#e6f2ff;strokeColor=#99c2ff;fontSize=12;fontStyle=1;verticalAlign=top;spacingTop=4;rounded=0;fontColor=#555555;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="100" width="720" height="1200" as="geometry"/>
+                </mxCell>
+                <mxCell id="lanePorts" value="右レーン: Port → Adapter 実装" style="shape=mxgraph.basic.rect;fillColor=#f5e6ff;strokeColor=#c299ff;fontSize=12;fontStyle=1;verticalAlign=top;spacingTop=4;rounded=0;fontColor=#555555;" parent="1" vertex="1">
+                    <mxGeometry x="780" y="100" width="640" height="1200" as="geometry"/>
+                </mxCell>
+
+                <!-- ====== 左レーン: 決済フロー ====== -->
+                <!-- TradingSession (最上段) -->
+                <mxCell id="tradingSession" value="TradingSession&#10;（市場監視ループ、複数 Rule を for 評価）" style="swimlane;fontStyle=1;align=center;startSize=45;strokeWidth=2;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="150" width="640" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="tradingSessionContent" value="- exitRulesByStrategy: Map&lt;StrategyNameValue, ExitRule&gt;（戦略別 dispatch / N-C1）&#10;- exitExecution: ExitExecution&#10;- positionRepository: PositionRepository&#10;- alertPort: AlertPort&#10;--&#10;+ evaluateEntry(snapshot): void → PositionManager.handleSignals&#10;+ evaluateExit(snapshot): void&#10;  ※ 再入防止: exitInProgress フラグで同時実行を直列化（ティック重複時の OPEN 競合を防ぐ）&#10;  for ordered := openPositions.sortedByOpenedAtAsc():&#10;    rule = exitRulesByStrategy.get(p.strategyName.value)&#10;    if !rule → AlertPort.notify('warn', 'ExitRule not registered'); continue&#10;    try { result = rule.shouldExit(p, snapshot) }&#10;    catch → AlertPort.notify('error', ...) (H12 / 1 戦略の throw で他戦略を止めない)&#10;    if result instanceof ExitCommand → exitExecution.closePosition" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#dae8fc;strokeColor=none;fontSize=11;fontColor=#000000;" parent="tradingSession" vertex="1">
+                    <mxGeometry y="45" width="640" height="115" as="geometry"/>
+                </mxCell>
+
+                <!-- ExitRule(ref) 右側に小さく参照 -->
+                <mxCell id="exitRuleRef" value="ExitRule&#10;（別図: rule-layer.drawio）" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#fff2e6;strokeColor=#ffb380;fontSize=11;fontColor=#555555;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="490" y="370" width="220" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="exitRuleRefContent" value="&lt;&lt;interface&gt;&gt;&#10;+ shouldExit(position, snapshot): ExitCommand | DoNothing&#10;{null は返さない（DoNothing パターン）}&#10;{戦略ごとに 1 実装、Map に登録}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2e6;strokeColor=none;fontSize=10;fontColor=#555555;" parent="exitRuleRef" vertex="1">
+                    <mxGeometry y="40" width="220" height="60" as="geometry"/>
+                </mxCell>
+
+                <!-- Position(ref) 左側 -->
+                <mxCell id="positionRef" value="Position&#10;（別図: value-objects-trading）" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#fff2e6;strokeColor=#ffb380;fontSize=11;fontColor=#555555;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="370" width="220" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="positionRefContent" value="id, pair, buySell, lot,&#10;strategyName, entrySnapshot&#10;{domain 集約}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2e6;strokeColor=none;fontSize=10;fontColor=#555555;" parent="positionRef" vertex="1">
+                    <mxGeometry y="40" width="220" height="60" as="geometry"/>
+                </mxCell>
+
+                <!-- ExitExecution -->
+                <mxCell id="exitExec" value="ExitExecution&#10;（決済執行）" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="180" y="560" width="420" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="exitExecContent" value="- broker: Broker&#10;- positionRepository: PositionRepository&#10;- alertPort: AlertPort&#10;--&#10;+ closePosition(cmd: ExitCommand): void&#10;  broker.placeExit(cmd, clientOrderId)（clientOrderId 必須 / 冪等キー方式で重複決済防止）&#10;  ※ 補助: 再試行前に Broker.findRecentExitOrder で約定状態を事前チェック&#10;  → 約定済みなら placeExit を skip して positionRepository.update のみ実行&#10;  リトライ最大 3 回 → 全失敗時は AlertPort.notify('critical', '決済失敗・要手動対応')" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#dae8fc;strokeColor=none;fontSize=11;fontColor=#000000;" parent="exitExec" vertex="1">
+                    <mxGeometry y="40" width="420" height="90" as="geometry"/>
+                </mxCell>
+
+                <!-- 左レーン下段: Broker / PositionRepository 参照 -->
+                <mxCell id="brokerL" value="&lt;&lt;interface&gt;&gt;&#10;Broker" style="swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="790" width="300" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="brokerLContent" value="+ placeEntry(cmd): Promise&lt;EntryResult&gt;&#10;+ placeExit(position): Promise&lt;ExitResult&gt;" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=10;fontColor=#000000;" parent="brokerL" vertex="1">
+                    <mxGeometry y="45" width="300" height="65" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="posRepoL" value="&lt;&lt;interface&gt;&gt;&#10;PositionRepository" style="swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="410" y="790" width="300" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="posRepoLContent" value="+ register(position, snapshot?): Promise&lt;void&gt;&#10;+ update(position): Promise&lt;void&gt;&#10;+ findById(id): Promise&lt;Position&gt;&#10;+ findOpenByPairAndStrategy(pair, strategy): Promise&lt;Position | null&gt;&#10;+ openPositions(): Promise&lt;OpenPositions&gt;&#10;{ユニーク違反 → DuplicatePositionError throw}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=10;fontColor=#000000;" parent="posRepoL" vertex="1">
+                    <mxGeometry y="45" width="300" height="65" as="geometry"/>
+                </mxCell>
+
+                <!-- ====== 右レーン: port -> adapter 実装関係 ====== -->
+                <!-- port (上段 4 つ) -->
+                <mxCell id="balancePortR" value="&lt;&lt;interface&gt;&gt;&#10;BalancePort" style="swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="820" y="150" width="270" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="balancePortRContent" value="+ current(): Balance | null（キャッシュ可）&#10;+ freshNow(): Balance（throw）&#10;+ availableAmount(): AvailableBalance（含み損益込み一次採用）" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=10;fontColor=#000000;" parent="balancePortR" vertex="1">
+                    <mxGeometry y="45" width="270" height="75" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="ratePortR" value="&lt;&lt;interface&gt;&gt;&#10;RatePort" style="swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="820" y="360" width="270" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="ratePortRContent" value="+ currentOf(pair): Rate（キャッシュ可、失敗時 throw）&#10;+ currentFresh(pair): Rate（鮮度保証、古ければ throw）&#10;{Rate.isFreshEnough を内部で判定（憲法 6.9）}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=10;fontColor=#000000;" parent="ratePortR" vertex="1">
+                    <mxGeometry y="45" width="270" height="65" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="brokerR" value="&lt;&lt;interface&gt;&gt;&#10;Broker" style="swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="820" y="560" width="270" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="brokerRContent" value="+ placeEntry / + placeExit" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=10;fontColor=#000000;" parent="brokerR" vertex="1">
+                    <mxGeometry y="45" width="270" height="65" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="posRepoR" value="&lt;&lt;interface&gt;&gt;&#10;PositionRepository" style="swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="820" y="790" width="270" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="posRepoRContent" value="+ register / + update / + findById&#10;+ findOpenByPairAndStrategy&#10;+ openPositions" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=10;fontColor=#000000;" parent="posRepoR" vertex="1">
+                    <mxGeometry y="45" width="270" height="65" as="geometry"/>
+                </mxCell>
+
+                <!-- adapter (右側、各 port と同じ y) -->
+                <mxCell id="gmoBalanceAdapter" value="GmoBalanceAdapter&#10;（旧 BalanceCache）" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1130" y="150" width="270" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="gmoBalanceAdapterContent" value="- restClient: GmoRestClient&#10;- clock: Clock&#10;- cacheTtlMs: number = 5000&#10;--&#10;+ current(): Balance | null（API 失敗時 null）&#10;+ freshNow(): Balance（API 失敗時 throw）&#10;+ availableAmount(): AvailableBalance&#10;{内部 5 秒 TTL キャッシュ。クラス名には出さない}&#10;{current() の null は application 層で fallbackBalance に}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#d5e8d4;strokeColor=none;fontSize=10;fontColor=#000000;" parent="gmoBalanceAdapter" vertex="1">
+                    <mxGeometry y="40" width="270" height="140" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="gmoRateAdapter" value="GmoRateAdapter" style="swimlane;fontStyle=1;align=center;startSize=35;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1130" y="360" width="270" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="gmoRateAdapterContent" value="- marketDataStream: MarketDataStream&#10;- clock: Clock&#10;--&#10;+ currentOf(pair): Rate&#10;+ currentFresh(pair): Rate&#10;{鮮度判定は Rate.isFreshEnough を使用}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#d5e8d4;strokeColor=none;fontSize=10;fontColor=#000000;" parent="gmoRateAdapter" vertex="1">
+                    <mxGeometry y="35" width="270" height="75" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="gmoBrokerAdapter" value="GmoBrokerAdapter" style="swimlane;fontStyle=1;align=center;startSize=35;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1130" y="560" width="270" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="gmoBrokerAdapterContent" value="- restClient: GmoRestClient&#10;--&#10;+ placeEntry / + placeExit&#10;{isHedgeable: true}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#d5e8d4;strokeColor=none;fontSize=10;fontColor=#000000;" parent="gmoBrokerAdapter" vertex="1">
+                    <mxGeometry y="35" width="270" height="75" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="pgPosRepo" value="PostgresPositionRepository" style="swimlane;fontStyle=1;align=center;startSize=35;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1130" y="790" width="270" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="pgPosRepoContent" value="- db: Drizzle (PostgreSQL)&#10;--&#10;+ register / + update / + findById&#10;+ findOpenByPairAndStrategy&#10;+ openPositions&#10;{(pair, strategy_name) WHERE status='OPEN' 部分ユニーク}&#10;{違反 → DuplicatePositionError throw}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#d5e8d4;strokeColor=none;fontSize=10;fontColor=#000000;" parent="pgPosRepo" vertex="1">
+                    <mxGeometry y="35" width="270" height="95" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="clockPortR" value="&lt;&lt;interface&gt;&gt;&#10;Clock" style="swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="820" y="950" width="270" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="clockPortRContent" value="+ now(): Date&#10;{時刻取得の抽象。port 層に置く（VO ではない / L-4）}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=10;fontColor=#000000;" parent="clockPortR" vertex="1">
+                    <mxGeometry y="45" width="270" height="65" as="geometry"/>
+                </mxCell>
+                <mxCell id="systemClockAdapter" value="SystemClock" style="swimlane;fontStyle=1;align=center;startSize=35;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1130" y="950" width="270" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="systemClockAdapterContent" value="--&#10;+ now(): Date  // new Date()&#10;{infrastructure/time/SystemClock.ts}&#10;{テストでは FakeClock を使う}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#d5e8d4;strokeColor=none;fontSize=10;fontColor=#000000;" parent="systemClockAdapter" vertex="1">
+                    <mxGeometry y="35" width="270" height="75" as="geometry"/>
+                </mxCell>
+                <mxCell id="alertPortR" value="&lt;&lt;interface&gt;&gt;&#10;AlertPort" style="swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="820" y="1100" width="270" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="alertPortRContent" value="+ notify(level: AlertLevel, message, ctx?): void&#10;{level: 'critical' | 'error' | 'warn' | 'info' / H10}&#10;{ドメイン語彙でログ出力（憲法 6.11）}&#10;{UiNotifier とは責務直交（NH-3）}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=10;fontColor=#000000;" parent="alertPortR" vertex="1">
+                    <mxGeometry y="45" width="270" height="85" as="geometry"/>
+                </mxCell>
+                <mxCell id="alertAdapter" value="AlertAdapter / Logger" style="swimlane;fontStyle=1;align=center;startSize=35;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1130" y="1100" width="270" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="alertAdapterContent" value="--&#10;+ notify(level, message, ctx)&#10;{Slack / Discord / Webhook 等}&#10;{実装は別 issue で確定（M9）}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#d5e8d4;strokeColor=none;fontSize=10;fontColor=#000000;" parent="alertAdapter" vertex="1">
+                    <mxGeometry y="35" width="270" height="95" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="eImpl_Clock" value="implements" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=0;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="systemClockAdapter" target="clockPortR" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eImpl_Alert" value="implements" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=0;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="alertAdapter" target="alertPortR" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- ====== 付箋（右端） ====== -->
+                <mxCell id="groupNotes" value="設計のポイント" style="shape=mxgraph.basic.rect;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=4;rounded=1;arcSize=4;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1440" y="100" width="530" height="1200" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="note1" value="TradingSession の戦略別 dispatch（policies.md 2.5 / N-C1）&#10;&#10;・exitRulesByStrategy: Map&lt;StrategyNameValue, ExitRule&gt;&#10;・openPositions.sortedByOpenedAtAsc() で評価順を決定論化（H12）&#10;・1 戦略の throw で他戦略評価を止めない（try/catch + 'error' 通知）&#10;・登録漏れ戦略は AlertPort.notify('warn', 'ExitRule not registered')&#10;&#10;決済は完全自動。ユーザー承認不要。&#10;条件成立 → 即執行（brief.md 3 大権威）。" style="shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="1460" y="140" width="490" height="220" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="note2" value="GmoBalanceAdapter の内部実装&#10;&#10;・5 秒 TTL キャッシュ&#10;・API 失敗 → null を返す（隠蔽しない）&#10;・application 層で CAPITAL にフォールバック&#10;&#10;キャッシュは実装詳細なのでクラス名には出さない。&#10;BalanceCache → GmoBalanceAdapter に改名。" style="shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="1460" y="380" width="490" height="220" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="note3" value="Clean Architecture のオニオン構造&#10;&#10;依存方向:&#10;domain → application → port ← adapter ← infrastructure&#10;（矢印は内側へ。実装は外側から）&#10;&#10;・domain は何にも依存しない（最も純粋）&#10;・port は &lt;&lt;interface&gt;&gt; だけ。実装は持たない&#10;・adapter が port を implements&#10;・GMO API の都合変更で domain を書き換えない（案 C 却下の核心）" style="shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="1460" y="620" width="490" height="230" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="note4" value="PositionRepository の OPEN 部分ユニーク&#10;&#10;・(pair, strategy_name) で OPEN は 1 つだけ&#10;・WHERE status = &apos;OPEN&apos; の部分インデックス&#10;・CLOSED は何本あっても OK&#10;&#10;戦略ごとに独立したポジション管理。&#10;制約緩和で将来「同戦略複数ポジション」に広げられる。" style="shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="1460" y="870" width="490" height="230" as="geometry"/>
+                </mxCell>
+
+                <!-- ====== エッジ ====== -->
+                <!-- 左レーン: TradingSession -> ExitRule(ref), Position(ref) -->
+                <mxCell id="eTS_ExitRule" value="evaluates" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.8;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="tradingSession" target="exitRuleRef" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eTS_Position" value="reads" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.2;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="tradingSession" target="positionRef" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- TradingSession -> ExitExecution (真下へ、中央) -->
+                <mxCell id="eTS_ExitExec" value="close" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="tradingSession" target="exitExec" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- ExitExecution -> Broker, PosRepo (下段 2 つへ) -->
+                <mxCell id="eExit_Broker" value="places" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="exitExec" target="brokerL" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eExit_Repo" value="update" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.7;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="exitExec" target="posRepoL" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- 右レーン: adapter -> port (implements, 水平) -->
+                <mxCell id="eImpl_Balance" value="implements" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=0;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="gmoBalanceAdapter" target="balancePortR" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eImpl_Rate" value="implements" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=0;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="gmoRateAdapter" target="ratePortR" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eImpl_Broker" value="implements" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=0;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="gmoBrokerAdapter" target="brokerR" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eImpl_PosRepo" value="implements" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=0;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="pgPosRepo" target="posRepoR" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

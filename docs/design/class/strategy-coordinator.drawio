@@ -1,0 +1,234 @@
+<mxfile host="65bd71144e">
+    <diagram name="戦略統合 クラス図（旧 PositionManager）" id="strategy_coordinator">
+        <mxGraphModel dx="1604" dy="1386" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1800" pageHeight="1400" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="bg" value="" style="whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="8" y="-80" width="1560" height="1200" as="geometry"/>
+                </mxCell>
+                <mxCell id="title" value="戦略統合 クラス図（旧 PositionManager）" style="text;align=center;verticalAlign=middle;fontSize=20;fontStyle=1;fontColor=#333;shadow=1;" parent="1" vertex="1">
+                    <mxGeometry x="16" y="-76" width="1543" height="40" as="geometry"/>
+                </mxCell>
+
+                <!-- 層ラベル -->
+                <mxCell id="domain_label" value="domain" style="text;align=left;verticalAlign=middle;fontSize=14;fontStyle=1;fontColor=#d6b656;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="-20" width="80" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="app_label" value="application" style="text;align=left;verticalAlign=middle;fontSize=14;fontStyle=1;fontColor=#e6873e;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="270" width="120" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="port_label" value="port" style="text;align=left;verticalAlign=middle;fontSize=14;fontStyle=1;fontColor=#9673a6;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="640" width="80" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="infra_label" value="infrastructure" style="text;align=left;verticalAlign=middle;fontSize=14;fontStyle=1;fontColor=#999;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="810" width="140" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="adapter_label" value="adapter" style="text;align=left;verticalAlign=middle;fontSize=14;fontStyle=1;fontColor=#9673a6;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="980" width="80" height="30" as="geometry"/>
+                </mxCell>
+
+                <!-- 層の区切り線 -->
+                <mxCell id="sep1" value="" style="line;strokeColor=#999;dashed=1;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="258" width="1520" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="sep2" value="" style="line;strokeColor=#999;dashed=1;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="628" width="1520" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="sep3" value="" style="line;strokeColor=#999;dashed=1;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="800" width="1520" height="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="sep4" value="" style="line;strokeColor=#999;dashed=1;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="968" width="1520" height="10" as="geometry"/>
+                </mxCell>
+
+                <!-- ===== domain層: StrategyWeight ===== -->
+                <mxCell id="strategy_weight" value="StrategyWeight&#10;（値オブジェクト）" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#fff2cc;strokeColor=#d6b656;startSize=40;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="100" y="20" width="340" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="sw_attrs" value="+ strategyName: string&#10;+ weightPercent: number  // SMA 30%, RSI 25% 等" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="strategy_weight" vertex="1">
+                    <mxGeometry y="40" width="340" height="50" as="geometry"/>
+                </mxCell>
+
+                <!-- ===== domain層: LotPolicy ===== -->
+                <mxCell id="lot_policy" value="LotPolicy&#10;（ドメインサービス）" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#fff2cc;strokeColor=#d6b656;startSize=40;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="560" y="20" width="420" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="lp_sep" value="" style="line;strokeColor=#d6b656;" parent="lot_policy" vertex="1">
+                    <mxGeometry y="40" width="420" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="lp_methods" value="+ calculateLot(weight: StrategyWeight,&#10;              balance: Balance): Lot" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="lot_policy" vertex="1">
+                    <mxGeometry y="48" width="420" height="60" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="lp_note" value="口座残高と戦略ウェイトからロットを計算する&#10;ドメインのビジネスルール" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="560" y="155" width="300" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="lp_note_arr" style="strokeColor=#d6b656;dashed=1;endArrow=none;" parent="1" source="lp_note" target="lot_policy" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- uses: LotPolicy → StrategyWeight -->
+                <mxCell id="arr_lp_sw" value="uses" style="endArrow=open;endFill=0;dashed=1;strokeColor=#d6b656;fontSize=11;fontColor=#d6b656;fontStyle=2;" parent="1" source="lot_policy" target="strategy_weight" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- ===== application層: StrategyCoordinator ===== -->
+                <mxCell id="coordinator" value="StrategyCoordinator&#10;(Application Service)" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#fce4d6;strokeColor=#e6873e;startSize=45;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="100" y="310" width="460" height="280" as="geometry"/>
+                </mxCell>
+                <mxCell id="coord_attrs" value="- entryRules: EntryRule[]&#10;- exitRules: ExitRule[]&#10;- orderQueue: OrderQueue&#10;- lotPolicy: LotPolicy&#10;- positionRepository: PositionRepository&#10;- balancePort: BalancePort" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="coordinator" vertex="1">
+                    <mxGeometry y="45" width="460" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="coord_sep" value="" style="line;strokeColor=#e6873e;" parent="coordinator" vertex="1">
+                    <mxGeometry y="160" width="460" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="coord_methods" value="+ evaluateEntries(snapshot: MarketSnapshot): Promise&lt;void&gt;&#10;+ evaluateExits(snapshot: MarketSnapshot): Promise&lt;void&gt;" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="coordinator" vertex="1">
+                    <mxGeometry y="168" width="460" height="100" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="coord_note" value="4戦略の交通整理役&#10;どの戦略が発火したかを判断し、&#10;ロット計算 → キュー投入まで行う" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="100" y="600" width="280" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="coord_note_arr" style="strokeColor=#d6b656;dashed=1;endArrow=none;" parent="coordinator" source="coord_note" target="coordinator" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- ===== application層: OrderQueue ===== -->
+                <mxCell id="entry_queue" value="OrderQueue" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#fce4d6;strokeColor=#e6873e;startSize=30;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="680" y="310" width="380" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="eq_attrs" value="- entryExecution: EntryExecution&#10;- exitExecution: ExitExecution" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="entry_queue" vertex="1">
+                    <mxGeometry y="30" width="380" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="eq_sep" value="" style="line;strokeColor=#e6873e;" parent="entry_queue" vertex="1">
+                    <mxGeometry y="55" width="380" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="eq_methods" value="+ enqueueEntry(command: EntryCommand): void&#10;+ enqueueExit(command: ExitCommand): void" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="entry_queue" vertex="1">
+                    <mxGeometry y="63" width="380" height="30" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="eq_note" value="GMO API の POST 1秒1回制限があるため、&#10;エントリーも決済も1つのキューで&#10;1つずつ順番に処理する。&#10;決済は優先度を高くする" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="680" y="460" width="300" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="eq_note_arr" style="strokeColor=#d6b656;dashed=1;endArrow=none;" parent="1" source="eq_note" target="entry_queue" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- uses: Coordinator → OrderQueue -->
+                <mxCell id="arr_coord_eq" value="uses" style="endArrow=open;endFill=0;dashed=1;strokeColor=#e6873e;fontSize=11;fontColor=#e6873e;fontStyle=2;" parent="1" source="coordinator" target="entry_queue" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- uses: Coordinator → LotPolicy -->
+                <mxCell id="arr_coord_lp" value="uses" style="endArrow=open;endFill=0;dashed=1;strokeColor=#e6873e;fontSize=11;fontColor=#e6873e;fontStyle=2;" parent="1" source="coordinator" target="lot_policy" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- ===== port層: BalancePort ===== -->
+                <mxCell id="balance_port" value="&lt;&lt;interface&gt;&gt;&#10;BalancePort" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#e1d5e7;strokeColor=#9673a6;startSize=45;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="100" y="670" width="360" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="bp_sep" value="" style="line;strokeColor=#9673a6;" parent="balance_port" vertex="1">
+                    <mxGeometry y="45" width="360" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="bp_methods" value="+ getBalance(): Promise&lt;Balance&gt;" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="balance_port" vertex="1">
+                    <mxGeometry y="53" width="360" height="30" as="geometry"/>
+                </mxCell>
+
+                <!-- uses: Coordinator → BalancePort -->
+                <mxCell id="arr_coord_bp" value="uses" style="endArrow=open;endFill=0;dashed=1;strokeColor=#e6873e;fontSize=11;fontColor=#e6873e;fontStyle=2;" parent="1" source="coordinator" target="balance_port" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- ===== infrastructure層: BalanceCache ===== -->
+                <mxCell id="balance_cache" value="BalanceCache" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#f5f5f5;strokeColor=#999;startSize=30;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="100" y="840" width="360" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="bc_attrs" value="- delegate: BalancePort&#10;- ttl: 5秒" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="balance_cache" vertex="1">
+                    <mxGeometry y="30" width="360" height="35" as="geometry"/>
+                </mxCell>
+                <mxCell id="bc_sep" value="" style="line;strokeColor=#999;" parent="balance_cache" vertex="1">
+                    <mxGeometry y="65" width="360" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="bc_methods" value="+ getBalance(): Promise&lt;Balance&gt;" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="balance_cache" vertex="1">
+                    <mxGeometry y="73" width="360" height="30" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="bc_note" value="残高APIを毎回叩くと遅いので5秒間キャッシュする&#10;API障害時はCAPITAL環境変数をフォールバック" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="500" y="860" width="330" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="bc_note_arr" style="strokeColor=#d6b656;dashed=1;endArrow=none;" parent="1" source="bc_note" target="balance_cache" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- BalanceCache wraps BalancePort -->
+                <mxCell id="arr_bc_bp" value="wraps" style="endArrow=open;endFill=0;dashed=1;strokeColor=#999;fontSize=11;fontColor=#999;fontStyle=2;" parent="1" source="balance_cache" target="balance_port" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- ===== adapter層: GmoBalanceAdapter ===== -->
+                <mxCell id="gmo_balance" value="GmoBalanceAdapter" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#e1d5e7;strokeColor=#9673a6;startSize=30;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="100" y="1010" width="360" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="gb_sep" value="" style="line;strokeColor=#9673a6;" parent="gmo_balance" vertex="1">
+                    <mxGeometry y="30" width="360" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="gb_methods" value="+ getBalance(): Promise&lt;Balance&gt;" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="gmo_balance" vertex="1">
+                    <mxGeometry y="38" width="360" height="30" as="geometry"/>
+                </mxCell>
+
+                <!-- implements: GmoBalanceAdapter → BalancePort -->
+                <mxCell id="arr_gb_bp" value="" style="endArrow=block;endFill=0;dashed=1;strokeColor=#9673a6;fontSize=11;" parent="1" source="gmo_balance" target="balance_port" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- ===== 参照ボックス: TradingSession ===== -->
+                <mxCell id="ref_ts" value="TradingSession&#10;(Application)&#10;&#10;参照: trading-session.drawio" style="rounded=0;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#999;fontColor=#999;fontSize=12;fontStyle=1;dashed=1;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="680" y="540" width="280" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_ref_ts_coord" value="calls" style="endArrow=open;endFill=0;dashed=1;strokeColor=#999;fontSize=11;fontColor=#999;fontStyle=2;" parent="1" source="ref_ts" target="coordinator" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- ===== 参照ボックス: EntryExecution ===== -->
+                <mxCell id="ref_ee" value="EntryExecution&#10;(Action)&#10;&#10;参照: action-layer.drawio" style="rounded=0;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#999;fontColor=#999;fontSize=12;fontStyle=1;dashed=1;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="1100" y="310" width="280" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_eq_ee" value="uses" style="endArrow=open;endFill=0;dashed=1;strokeColor=#e6873e;fontSize=11;fontColor=#e6873e;fontStyle=2;" parent="1" source="entry_queue" target="ref_ee" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- ===== 参照ボックス: ExitExecution ===== -->
+                <mxCell id="ref_xe" value="ExitExecution&#10;(Action)&#10;&#10;参照: action-layer.drawio" style="rounded=0;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#999;fontColor=#999;fontSize=12;fontStyle=1;dashed=1;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="1100" y="410" width="280" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_oq_xe" value="uses" style="endArrow=open;endFill=0;dashed=1;strokeColor=#e6873e;fontSize=11;fontColor=#e6873e;fontStyle=2;" parent="1" source="entry_queue" target="ref_xe" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- ===== 参照ボックス: EntryRule / ExitRule ===== -->
+                <mxCell id="ref_er" value="EntryRule[]&#10;(Domain)&#10;&#10;参照: rule-layer.drawio" style="rounded=0;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#999;fontColor=#999;fontSize=12;fontStyle=1;dashed=1;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="1100" y="510" width="280" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="ref_xr" value="ExitRule[]&#10;(Domain)&#10;&#10;参照: rule-layer.drawio" style="rounded=0;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#999;fontColor=#999;fontSize=12;fontStyle=1;dashed=1;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="1100" y="600" width="280" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_coord_er" value="uses" style="endArrow=open;endFill=0;dashed=1;strokeColor=#e6873e;fontSize=11;fontColor=#e6873e;fontStyle=2;" parent="1" source="coordinator" target="ref_er" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_coord_xr" value="uses" style="endArrow=open;endFill=0;dashed=1;strokeColor=#e6873e;fontSize=11;fontColor=#e6873e;fontStyle=2;" parent="1" source="coordinator" target="ref_xr" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- ===== 参照ボックス: PositionRepository ===== -->
+                <mxCell id="ref_pr" value="PositionRepository&#10;(Port)&#10;&#10;参照: action-layer.drawio" style="rounded=0;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#999;fontColor=#999;fontSize=12;fontStyle=1;dashed=1;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="560" y="670" width="280" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_coord_pr" value="uses" style="endArrow=open;endFill=0;dashed=1;strokeColor=#e6873e;fontSize=11;fontColor=#e6873e;fontStyle=2;" parent="1" source="coordinator" target="ref_pr" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

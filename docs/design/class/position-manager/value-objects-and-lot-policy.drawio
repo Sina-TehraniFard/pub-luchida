@@ -1,0 +1,184 @@
+<mxfile host="65bd71144e">
+    <diagram name="値オブジェクト + LotPolicy" id="pm-vo-lotpolicy">
+        <mxGraphModel dx="2118" dy="925" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="2000" pageHeight="1700" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="bg" value="" style="whiteSpace=wrap;html=1;fontColor=#333333;fillColor=#f5f5f5;strokeColor=#666666;labelBackgroundColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="-265" y="34" width="1980" height="1620" as="geometry"/>
+                </mxCell>
+                <mxCell id="title" value="PositionManager / domain層 — 値オブジェクト + LotPolicy" style="text;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="20" width="1400" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="subtitle" value="上段=基礎VO ／ 中段=派生VO ／ 下段=LotDecisionInput→LotPolicy→実装。flow は上→下" style="text;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=0;fontColor=#555555;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="56" width="1400" height="22" as="geometry"/>
+                </mxCell>
+                <mxCell id="rowBasic" value="基礎の値オブジェクト（ドメインの語彙）" style="shape=mxgraph.basic.rect;fillColor=#fce4d6;strokeColor=#e6873e;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=4;rounded=1;arcSize=4;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="100" width="1380" height="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="currency" value="&lt;&lt;enum&gt;&gt;&#10;Currency" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="130" width="250" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="currencyContent" value="JPY, USD, EUR, GBP, AUD&#10;{Money.currency の型}&#10;{value-objects.md と一致}&#10;{将来必要時に拡張}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=10;fontColor=#000000;" parent="currency" vertex="1">
+                    <mxGeometry y="40" width="250" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="money" value="Money 金額" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="320" y="130" width="250" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="moneyContent" value="value: Big (big.js)&#10;currency: Currency&#10;{通貨不一致演算は throw}&#10;--&#10;+ of(v, currency) / + jpy(v): Money&#10;+ plus/minus(other): Money&#10;+ times(ratio: Ratio): Money&#10;+ isNegative / + isZero" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=10;fontColor=#000000;" parent="money" vertex="1">
+                    <mxGeometry y="30" width="250" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="balance" value="Balance 残高" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="590" y="130" width="250" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="balanceContent" value="value: Money&#10;{value.value &gt;= 0}&#10;--&#10;+ of(value: Money): Balance&#10;+ multipliedBy(ratio: Ratio): Money&#10;+ minus(other: Money): Balance&#10;+ toMoney(): Money / + isZero" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=10;fontColor=#000000;" parent="balance" vertex="1">
+                    <mxGeometry y="30" width="250" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="ratio" value="Ratio 比率" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="860" y="130" width="250" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="ratioContent" value="value: Big（10桁切り捨て）&#10;{0 &lt;= value &lt;= 1}&#10;EPSILON = 1e-9（合計検証用）&#10;--&#10;+ of(v) / + zero / + one&#10;+ add / + addUnchecked / + times&#10;+ applyTo(lot: Lot): Lot&#10;+ isZero / + toBig" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=10;fontColor=#000000;" parent="ratio" vertex="1">
+                    <mxGeometry y="30" width="250" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="currencyPair" value="&lt;&lt;enum&gt;&gt;&#10;CurrencyPair（既存）" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1130" y="130" width="260" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="currencyPairContent" value="USD_JPY, EUR_JPY, GBP_JPY,&#10;AUD_JPY, EUR_USD, GBP_USD&#10;{6ペア固定。GMO 対応のみ}&#10;--&#10;+ base(): Currency&#10;+ quote(): Currency&#10;+ pipScale(): number&#10;{base / quote / pipScale は #131 で追加}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=10;fontColor=#000000;" parent="currencyPair" vertex="1">
+                    <mxGeometry y="40" width="260" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="rowDerived" value="派生の値オブジェクト（基礎VOを組み合わせた専門概念）" style="shape=mxgraph.basic.rect;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=4;rounded=1;arcSize=4;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="320" width="1380" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="rate" value="Rate レート" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="740" y="352" width="310" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="rateContent" value="value: Big&#10;pair: CurrencyPair&#10;capturedAt: Date&#10;{value &gt; 0。null は返さない（憲法 6.7）}&#10;--&#10;+ of(value, pair, capturedAt): Rate&#10;+ toBig() / + pair() / + capturedAt()&#10;+ pipDifference(other): Pips&#10;+ isFreshEnough(now, maxAgeMs): bool" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=10;fontColor=#000000;" parent="rate" vertex="1">
+                    <mxGeometry y="30" width="310" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="maintRatio" value="MaintenanceRatio 維持率目標" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="55" y="345" width="310" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="maintRatioContent" value="value: Big&#10;{value &gt; 1.0（1.0 以下は throw）}&#10;{1.0 以下はロスカット境界}&#10;--&#10;+ of(value): MaintenanceRatio&#10;+ toBig() / + toNumber()&#10;{例: 1.4 → 140% 目標}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=10;fontColor=#000000;" parent="maintRatio" vertex="1">
+                    <mxGeometry y="30" width="310" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="marginRate" value="MarginRate 証拠金率" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="394" y="352" width="310" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="marginRateContent" value="value: Big&#10;{0 &lt; value &lt; 1。レバの逆数}&#10;--&#10;+ of(value): MarginRate&#10;+ toBig() / + toNumber()&#10;+ leverageEquivalent(): number&#10;{例: 0.04 → レバレッジ 25 倍}&#10;{業者依存値は infrastructure DI / R10}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=10;fontColor=#000000;" parent="marginRate" vertex="1">
+                    <mxGeometry y="30" width="310" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="lot" value="Lot 取引数量（既存）" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1080" y="350" width="310" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="lotContent" value="value: int&#10;{100〜500,000、100の倍数}&#10;--&#10;+ of(value): Lot" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=10;fontColor=#000000;" parent="lot" vertex="1">
+                    <mxGeometry y="30" width="310" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="lotInput" value="LotDecisionInput&#10;ロット決定の入力（パラメータオブジェクト）" style="swimlane;fontStyle=1;align=center;startSize=45;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="340" y="580" width="760" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="lotInputContent" value="pair: CurrencyPair&#10;balance: Balance&#10;rate: Rate&#10;target: MaintenanceRatio&#10;marginRate: MarginRate&#10;--&#10;+ of(pair, balance, rate, target, marginRate): LotDecisionInput&#10;{不変条件 1: rate.pair() === pair（通貨ペア整合）}&#10;{不変条件 2: balance.currency と rate.pair.quote() が整合（JPY quote 前提）}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#dae8fc;strokeColor=none;fontSize=11;fontColor=#000000;" parent="lotInput" vertex="1">
+                    <mxGeometry y="45" width="760" height="115" as="geometry"/>
+                </mxCell>
+                <mxCell id="lotPolicyIf" value="&lt;&lt;interface&gt;&gt;&#10;LotPolicy" style="swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="430" y="820" width="580" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="lotPolicyIfContent" value="+ decide(input: LotDecisionInput): Lot&#10;--&#10;{純粋ドメインサービス。I/O なし。値オブジェクトだけで計算}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=11;fontColor=#000000;" parent="lotPolicyIf" vertex="1">
+                    <mxGeometry y="45" width="580" height="75" as="geometry"/>
+                </mxCell>
+                <mxCell id="maintLotPolicy" value="MaintenanceRatioBasedLotPolicy&#10;（旧 MarginBasedLotPolicy）" style="swimlane;fontStyle=1;align=center;startSize=45;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="390" y="1020" width="660" height="240" as="geometry"/>
+                </mxCell>
+                <mxCell id="maintLotPolicyContent" value="+ decide(input: LotDecisionInput): Lot&#10;--&#10;前提（JPY quote 専用）:&#10;  if input.pair().quote() !== &apos;JPY&apos; → throw&#10;--&#10;計算（憲法 6.1: 経路は全て Big、最後の Lot.of でのみ number 化）:&#10;  raw     = capital / (target × rate × marginRate)&#10;  rounded = floor(raw / 100) × 100&#10;  clamped = clamp(rounded, MIN=100, MAX=500_000)&#10;  return Lot.of(clamped)&#10;--&#10;{純粋計算のみ。I/O を知らない}&#10;{維持率 target を満たす Lot を上限として決定}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#d5e8d4;strokeColor=none;fontSize=11;fontColor=#000000;" parent="maintLotPolicy" vertex="1">
+                    <mxGeometry y="45" width="660" height="195" as="geometry"/>
+                </mxCell>
+                <mxCell id="groupNotes" value="設計のポイント" style="shape=mxgraph.basic.rect;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=4;rounded=1;arcSize=4;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1440" y="100" width="540" height="1240" as="geometry"/>
+                </mxCell>
+                <mxCell id="note1" value="値オブジェクトは不変条件を内部で守る&#10;&#10;・Balance: 非負&#10;・Ratio: 0〜1&#10;・MaintenanceRatio: 1.0 以上&#10;・MarginRate: 0〜1 の正値&#10;&#10;不正な値はコンストラクタで弾き、&#10;ドメインの内側には正しい値しか入らない" style="shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="1460" y="140" width="500" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="note2" value="LotPolicy は純粋ドメインサービス&#10;&#10;・I/O を一切持たない&#10;・引数は値オブジェクトだけで束ねる&#10;  （LotDecisionInput）&#10;・戻り値も値オブジェクト（Lot）&#10;&#10;→ テスト容易・差し替え容易&#10;→ 将来 VolatilityTargetingLotPolicy（#122）&#10;  などを実装差し替えで導入可能" style="shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="1460" y="360" width="500" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="note3" value="本改修の狙い：number 型を domain から追い出す&#10;&#10;・従来: number を domain が直に扱っていた&#10;  → 単位や不変条件が型に現れない&#10;  → 取り違えバグ・null チェックの氾濫&#10;&#10;・今回: Balance / Rate / MaintenanceRatio /&#10;  MarginRate / Ratio を整備&#10;  → 型だけで意味が伝わる&#10;  → null の居場所を境界に限定" style="shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="1460" y="600" width="500" height="230" as="geometry"/>
+                </mxCell>
+                <mxCell id="note4" value="Rate は null を返さない&#10;&#10;・取得失敗は application 層で例外ハンドル&#10;・domain に null は渡さない&#10;・古レートでの発注事故を防ぐため、&#10;  取れない時は「発注中止」で良い&#10;&#10;現状 getCurrentRate(): number | null だが、&#10;本改修で Rate 値オブジェクトに置き換える" style="shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="1460" y="850" width="500" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="note5" value="命名の確定（brief.md 5.1 / R10）&#10;&#10;・DynamicLotCalculator → PositionSizingService&#10;・MarginBasedLotPolicy → MaintenanceRatioBasedLotPolicy&#10;・BalanceCache → GmoBalanceAdapter&#10;・MarginRate.gmoFxRetail() 削除&#10;  → infrastructure DI（GmoConstants.MARGIN_RATE）&#10;・AllocationPolicy.decide(...)（旧 .allocate）&#10;&#10;FX 業界用語とドメインの意図に寄せる。&#10;キャッシュ・業者依存値は実装詳細でクラス名に出さない。" style="shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="1460" y="1070" width="500" height="210" as="geometry"/>
+                </mxCell>
+                <mxCell id="constitution" value="設計憲法 6.1〜6.11（value-objects.md 6 章）&#10;&#10;6.1 Big 徹底  経路は Big で閉じ、Lot.of(number) の境界のみ number 化&#10;6.2 エラー階層  VO 不変条件違反は throw（将来 DomainValidationError 階層へ）&#10;6.3 Balance / AvailableBalance 分岐  必要時に別 VO 化&#10;6.4 テスト戦略  境界値・例外・等価性・不変性を VO ごとに必須&#10;6.5 equals と hashCode  Map キーには .value（StrategyNameValue）&#10;6.6 StrategyName 4 値固定  enum 前提（class 実装は #130 で singleton 化予定）&#10;6.7 domain VO は null を返さない  port 層のみ null 許容&#10;6.8 Pips × Rate の pip 精度連携  CurrencyPair.pipScale() 経由（#131）&#10;6.9 Rate.freshNow 運用  鮮度判定は RatePort 実装が担う&#10;6.10 Map 非露出  StrategyLots / LotAllocation で API 境界を覆う&#10;6.11 シリアライズはドメイン語彙  strategyName.value / pair.toString()" style="shape=note;size=14;whiteSpace=wrap;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;fontColor=#000000;align=left;spacingLeft=8;fontStyle=0;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="1320" width="1340" height="280" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrMoneyCurrency" value="currency" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=diamond;endFill=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="money" target="currency" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrBalanceMoney" value="value" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=diamond;endFill=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="balance" target="money" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrRatePair" value="pair" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=diamond;endFill=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="rate" target="currencyPair" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="939" y="352"/>
+                            <mxPoint x="939" y="306"/>
+                            <mxPoint x="1260" y="306"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="arrInputPair" value="pair" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=diamond;endFill=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.9;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="lotInput" target="currencyPair" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1024" y="526"/>
+                            <mxPoint x="1060" y="526"/>
+                            <mxPoint x="1060" y="281"/>
+                            <mxPoint x="1260" y="281"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="arrInputBalance" value="balance" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=diamond;endFill=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="lotInput" target="balance" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="720" y="288"/>
+                            <mxPoint x="715" y="288"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="arrInputRate" value="rate" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=diamond;endFill=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=0.75;exitY=0;exitDx=0;exitDy=0;" parent="1" source="lotInput" target="rate" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="895" y="580"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="arrInputTarget" value="target" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=diamond;endFill=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.4;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="lotInput" target="maintRatio" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="449" y="580"/>
+                            <mxPoint x="449" y="533"/>
+                            <mxPoint x="209" y="533"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="arrInputMarginRate" value="marginRate" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=diamond;endFill=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="lotInput" target="marginRate" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="549" y="570"/>
+                            <mxPoint x="549" y="570"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="arrPolicyUsesInput" value="decide(input)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#666666;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="lotPolicyIf" target="lotInput" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrPolicyReturnsLot" value="returns Lot" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#666666;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=1;exitY=0.2;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="lotPolicyIf" target="lot" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrImpl" value="implements" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=0;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=11;fontColor=#000000;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="maintLotPolicy" target="lotPolicyIf" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

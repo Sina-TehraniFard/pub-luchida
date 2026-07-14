@@ -1,0 +1,43 @@
+#compdef luchida luchida.sh
+#
+# zsh completion for luchida CLI
+#
+# install.sh で ~/.zshrc に fpath が登録され、zsh の compinit に拾われる。
+# alias luchida=".../luchida.sh" 経由でも補完が効くよう、両方の名前で登録する。
+# 詳細仕様: https://github.com/Sina-TehraniFard/luchida/issues/191
+
+# luchida は「bot 運用フラグ(-s/-e/-r/-c/-h)」または
+# 「名前付きサブコマンド(adx/update)」のいずれか1つを第1語に取る。
+# 第1語はフラグとサブコマンドが混在するため、_arguments の排他指定では
+# 表現できない。第1語は候補一覧、adx の後だけ --period/--bars を補完する。
+_luchida() {
+  if (( CURRENT == 2 )); then
+    local -a first
+    first=(
+      '-s:安全な起動 + 起動後ヘルスチェック'
+      '-e:停止（ポジションは保持。次回起動で監視再開）+ 停止後ヘルスチェック'
+      '-r:最新 main を反映して再起動（pull → 停止 → 起動）'
+      '-c:ヘルスチェック（独立実行）'
+      '-h:ヘルプ表示'
+      '--help:ヘルプ表示'
+      'adx:全通貨ペア × 各時間足の ADX/DI 一覧'
+      'update:pull 後に CLI 補完キャッシュを再生成して追従'
+    )
+    _describe -t commands 'luchida command' first
+    return
+  fi
+
+  # 第2語以降: adx のオプションのみ補完する。
+  # _arguments は $words[1] をコマンド名として扱うため、そのまま呼ぶと
+  # サブコマンド名 adx が位置引数として解析されて補完が出ない。
+  # words を1つ左詰めして adx をコマンド名の位置に置いてから解析させる。
+  if [[ "$words[2]" == adx ]]; then
+    shift words
+    (( CURRENT-- ))
+    _arguments \
+      '--period[ADX/DI 期間（正の整数、既定 14）]:period:' \
+      '--bars[各足で取得する確定足の本数（既定 200）]:bars:'
+  fi
+}
+
+_luchida "$@"

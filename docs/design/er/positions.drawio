@@ -1,0 +1,139 @@
+<mxfile host="65bd71144e">
+    <diagram name="positions ER Diagram" id="er_positions">
+        <mxGraphModel dx="1816" dy="1383" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1600" pageHeight="900" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="bg" value="" style="whiteSpace=wrap;html=1;shadow=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="20" y="-20" width="1560" height="970" as="geometry"/>
+                </mxCell>
+                <mxCell id="title" value="positions ER図（2テーブル構成）" style="text;align=center;verticalAlign=middle;fontSize=22;fontStyle=1;fontColor=#333;shadow=1;" parent="1" vertex="1">
+                    <mxGeometry x="20" y="-20" width="1560" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="enum_title" value="ENUM定義" style="text;align=left;verticalAlign=middle;fontSize=14;fontStyle=1;fontColor=#6c3483;" parent="1" vertex="1">
+                    <mxGeometry x="43" y="20" width="200" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="enum_buy_sell" value="CREATE TYPE buy_sell_type&#10;  AS ENUM ('BUY', 'SELL');" style="shape=note;whiteSpace=wrap;size=14;fillColor=#f4ecf7;strokeColor=#6c3483;fontSize=12;fontColor=#6c3483;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="48" width="250" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="enum_status" value="CREATE TYPE position_status&#10;  AS ENUM ('OPEN', 'CLOSED');" style="shape=note;whiteSpace=wrap;size=14;fillColor=#f4ecf7;strokeColor=#6c3483;fontSize=12;fontColor=#6c3483;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="108" width="260" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="tbl_pos" value="positions" style="swimlane;fontStyle=1;align=center;fontSize=16;fillColor=#f5f5f5;strokeColor=#666666;startSize=35;fontColor=#333333;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="180" width="460" height="440" as="geometry"/>
+                </mxCell>
+                <mxCell id="pos_id" value="PK  id : VARCHAR(50)" style="text;align=left;verticalAlign=middle;fontSize=13;fontColor=#333333;fontStyle=1;spacingLeft=8;fillColor=#f5f5f5;strokeColor=#666666;" parent="tbl_pos" vertex="1">
+                    <mxGeometry y="40" width="450" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="pos_sep1" value="" style="line;strokeColor=#6c8ebf;" parent="tbl_pos" vertex="1">
+                    <mxGeometry y="65" width="460" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="pos_pair" value="currency_pair : VARCHAR(7) NOT NULL" style="text;align=left;verticalAlign=middle;fontSize=13;fontColor=#333333;spacingLeft=8;fillColor=#f5f5f5;strokeColor=#666666;" parent="tbl_pos" vertex="1">
+                    <mxGeometry y="77" width="450" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="pos_bs" value="buy_sell : buy_sell_type NOT NULL" style="text;align=left;verticalAlign=middle;fontSize=13;fontColor=#333333;spacingLeft=8;fillColor=#f5f5f5;strokeColor=#666666;" parent="tbl_pos" vertex="1">
+                    <mxGeometry y="102" width="450" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="pos_lot" value="lot : DECIMAL(10,2) NOT NULL" style="text;align=left;verticalAlign=middle;fontSize=13;fontColor=#333333;spacingLeft=8;fillColor=#f5f5f5;strokeColor=#666666;" parent="tbl_pos" vertex="1">
+                    <mxGeometry y="127" width="450" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="pos_ep" value="entry_price : DECIMAL(12,6) NOT NULL" style="text;align=left;verticalAlign=middle;fontSize=13;fontColor=#333333;spacingLeft=8;fillColor=#f5f5f5;strokeColor=#666666;" parent="tbl_pos" vertex="1">
+                    <mxGeometry y="152" width="450" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="pos_xp" value="exit_price : DECIMAL(12,6)  -- NULL=未決済" style="text;align=left;verticalAlign=middle;fontSize=13;fontColor=#333333;spacingLeft=8;fillColor=#f5f5f5;strokeColor=#666666;" parent="tbl_pos" vertex="1">
+                    <mxGeometry y="177" width="450" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="pos_pl" value="profit_loss : DECIMAL(12,2)  -- NULL=未決済" style="text;align=left;verticalAlign=middle;fontSize=13;fontColor=#333333;spacingLeft=8;fillColor=#f5f5f5;strokeColor=#666666;" parent="tbl_pos" vertex="1">
+                    <mxGeometry y="202" width="450" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="pos_st" value="status : position_status NOT NULL DEFAULT 'OPEN'" style="text;align=left;verticalAlign=middle;fontSize=13;fontColor=#333333;spacingLeft=8;fillColor=#f5f5f5;strokeColor=#666666;" parent="tbl_pos" vertex="1">
+                    <mxGeometry y="227" width="450" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="pos_sn" value="strategy_name : VARCHAR(50) NOT NULL" style="text;align=left;verticalAlign=middle;fontSize=13;fontColor=#333333;spacingLeft=8;fillColor=#f5f5f5;strokeColor=#666666;" parent="tbl_pos" vertex="1">
+                    <mxGeometry y="252" width="450" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="pos_sep2" value="" style="line;strokeColor=#6c8ebf;" parent="tbl_pos" vertex="1">
+                    <mxGeometry y="277" width="460" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="pos_oa" value="opened_at : TIMESTAMPTZ NOT NULL DEFAULT now()" style="text;align=left;verticalAlign=middle;fontSize=13;fontColor=#333333;spacingLeft=8;fillColor=#f5f5f5;strokeColor=#666666;" parent="tbl_pos" vertex="1">
+                    <mxGeometry y="287" width="450" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="pos_ca" value="closed_at : TIMESTAMPTZ  -- NULL=未決済" style="text;align=left;verticalAlign=middle;fontSize=13;fontColor=#333333;spacingLeft=8;fillColor=#f5f5f5;strokeColor=#666666;" parent="tbl_pos" vertex="1">
+                    <mxGeometry y="312" width="450" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="pos_et" value="exit_type : VARCHAR(20)  -- TAKE_PROFIT / STOP_LOSS" style="text;align=left;verticalAlign=middle;fontSize=13;fontColor=#333333;spacingLeft=8;fillColor=#f5f5f5;strokeColor=#666666;" parent="tbl_pos" vertex="1">
+                    <mxGeometry y="337" width="450" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="pos_er" value="exit_reason : VARCHAR(200)  -- 決済理由（テキスト）" style="text;align=left;verticalAlign=middle;fontSize=13;fontColor=#333333;spacingLeft=8;fillColor=#f5f5f5;strokeColor=#666666;" parent="tbl_pos" vertex="1">
+                    <mxGeometry y="362" width="450" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="pos_mfe" value="mfe_pips : DECIMAL(10,4)  -- 最大含み益（pips）" style="text;align=left;verticalAlign=middle;fontSize=13;fontColor=#333333;spacingLeft=8;fillColor=#f5f5f5;strokeColor=#666666;" parent="tbl_pos" vertex="1">
+                    <mxGeometry y="387" width="450" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="pos_mae" value="mae_pips : DECIMAL(10,4)  -- 最大含み損（pips）" style="text;align=left;verticalAlign=middle;fontSize=13;fontColor=#333333;spacingLeft=8;fillColor=#f5f5f5;strokeColor=#666666;" parent="tbl_pos" vertex="1">
+                    <mxGeometry y="412" width="450" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="tbl_snap" value="position_entry_snapshots" style="swimlane;fontStyle=1;align=center;fontSize=16;fillColor=#e8f4fd;strokeColor=#2980b9;startSize=35;fontColor=#1a5276;" parent="1" vertex="1">
+                    <mxGeometry x="826" y="221" width="580" height="340" as="geometry"/>
+                </mxCell>
+                <mxCell id="snap_pid" value="PK/FK  position_id : VARCHAR(50) → positions.id" style="text;align=left;verticalAlign=middle;fontSize=13;fontColor=#1a5276;fontStyle=1;spacingLeft=8;fillColor=#e8f4fd;strokeColor=#2980b9;" parent="tbl_snap" vertex="1">
+                    <mxGeometry y="40" width="570" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="snap_sep1" value="" style="line;strokeColor=#2980b9;" parent="tbl_snap" vertex="1">
+                    <mxGeometry y="65" width="580" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="snap_cs" value="conviction_score : DECIMAL(5,4)  -- 確信スコア 0.0〜1.0" style="text;align=left;verticalAlign=middle;fontSize=13;fontColor=#333333;spacingLeft=8;fillColor=#e8f4fd;strokeColor=#2980b9;" parent="tbl_snap" vertex="1">
+                    <mxGeometry y="77" width="570" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="snap_sar" value="sma_spread_atr_ratio : DECIMAL(10,6)  -- SMAスプレッド/ATR比率（生値）" style="text;align=left;verticalAlign=middle;fontSize=13;fontColor=#333333;spacingLeft=8;fillColor=#e8f4fd;strokeColor=#2980b9;" parent="tbl_snap" vertex="1">
+                    <mxGeometry y="102" width="570" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="snap_adx" value="adx : DECIMAL(10,4)  -- トレンド強度（0〜100）" style="text;align=left;verticalAlign=middle;fontSize=13;fontColor=#333333;spacingLeft=8;fillColor=#e8f4fd;strokeColor=#2980b9;" parent="tbl_snap" vertex="1">
+                    <mxGeometry y="127" width="570" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="snap_atr" value="atr_pips : DECIMAL(10,4)  -- ボラティリティ（pips換算）" style="text;align=left;verticalAlign=middle;fontSize=13;fontColor=#333333;spacingLeft=8;fillColor=#e8f4fd;strokeColor=#2980b9;" parent="tbl_snap" vertex="1">
+                    <mxGeometry y="152" width="570" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="snap_rsi" value="rsi : DECIMAL(10,4)  -- モメンタム（0〜100）" style="text;align=left;verticalAlign=middle;fontSize=13;fontColor=#333333;spacingLeft=8;fillColor=#e8f4fd;strokeColor=#2980b9;" parent="tbl_snap" vertex="1">
+                    <mxGeometry y="177" width="570" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="snap_sp" value="spread_pips : DECIMAL(6,4)  -- エントリー時スプレッド（コスト記録）" style="text;align=left;verticalAlign=middle;fontSize=13;fontColor=#333333;spacingLeft=8;fillColor=#e8f4fd;strokeColor=#2980b9;" parent="tbl_snap" vertex="1">
+                    <mxGeometry y="202" width="570" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="snap_ta" value="trend_alignment : SMALLINT  -- MTF整合（-1=逆張り / 0=中立 / 1=順張り）" style="text;align=left;verticalAlign=middle;fontSize=13;fontColor=#333333;spacingLeft=8;fillColor=#e8f4fd;strokeColor=#2980b9;" parent="tbl_snap" vertex="1">
+                    <mxGeometry y="227" width="570" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="snap_eh" value="entry_hour : SMALLINT  -- エントリー時刻（UTC、0〜23）" style="text;align=left;verticalAlign=middle;fontSize=13;fontColor=#333333;spacingLeft=8;fillColor=#e8f4fd;strokeColor=#2980b9;" parent="tbl_snap" vertex="1">
+                    <mxGeometry y="252" width="570" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="snap_dow" value="entry_day_of_week : SMALLINT  -- 曜日（0=日曜〜6=土曜, JS標準）" style="text;align=left;verticalAlign=middle;fontSize=13;fontColor=#333333;spacingLeft=8;fillColor=#e8f4fd;strokeColor=#2980b9;" parent="tbl_snap" vertex="1">
+                    <mxGeometry y="277" width="570" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="snap_note_row" value="※ 全列NULL許容（後方互換）" style="text;align=left;verticalAlign=middle;fontSize=11;fontColor=#2980b9;fontStyle=2;spacingLeft=8;fillColor=#e8f4fd;strokeColor=none;" parent="tbl_snap" vertex="1">
+                    <mxGeometry y="308" width="570" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="rel" value="1&#10;エントリー時に&#10;同時INSERT&#10;1" style="endArrow=ERmany;startArrow=ERmandOne;endFill=0;startFill=0;strokeColor=#666666;fontSize=11;fontColor=#FFFFFF;align=center;" parent="1" source="tbl_pos" target="tbl_snap" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="lc_title" value="ライフサイクル" style="text;align=center;verticalAlign=middle;fontSize=14;fontStyle=1;fontColor=#333;" parent="1" vertex="1">
+                    <mxGeometry x="65" y="770" width="250" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="st_open" value="OPEN" style="ellipse;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=14;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="45" y="805" width="100" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="st_closed" value="CLOSED" style="ellipse;fillColor=#f8cecc;strokeColor=#b85450;fontSize=14;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="245" y="805" width="100" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_lc" value="決済" style="strokeColor=#333;fontSize=11;fontColor=#333;" parent="1" source="st_open" target="st_closed" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="note_design" value="設計方針&#10;&#10;- positions: ドメインの核心。ライフサイクル管理のみ&#10;- position_entry_snapshots: 分析データ。独立して育てる&#10;- 1:1関係。エントリー時に同時INSERT&#10;- snapshotsは全列NULL許容（後方互換）&#10;- 1日最大100〜1000件。2テーブルINSERTのコストは無視できる&#10;- 削除ではなくステータス変更&#10;- exit_type/exit_reason で決済理由を直接記録&#10;- mfe_pips/mae_pips でSL最適化分析が可能" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="375" y="629" width="340" height="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="note_query" value="クエリ例&#10;&#10;保有中: WHERE status = 'OPEN'&#10;利確: WHERE profit_loss &gt; 0&#10;損切: WHERE profit_loss &lt; 0&#10;&#10;-- スプレッドコスト分析&#10;JOIN position_entry_snapshots s ON id = s.position_id&#10;WHERE s.spread_pips &gt; 2.0&#10;&#10;-- 高確信 × トレンド相場 × 順張り&#10;WHERE s.conviction_score &gt;= 0.7&#10;  AND s.adx &gt;= 25&#10;  AND s.trend_alignment = 1" style="shape=note;whiteSpace=wrap;size=14;fillColor=#e8f5e9;strokeColor=#82b366;fontSize=11;fontColor=#3a6b2a;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="900" y="625" width="360" height="240" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

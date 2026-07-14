@@ -1,0 +1,167 @@
+<mxfile host="65bd71144e">
+    <diagram name="Composition - Entry Flow" id="pm-comp-entry">
+        <mxGraphModel dx="1460" dy="786" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="2000" pageHeight="1400" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="bg" value="" style="whiteSpace=wrap;html=1;fontColor=#333333;fillColor=#f5f5f5;strokeColor=#666666;labelBackgroundColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="10" y="10" width="1980" height="1350" as="geometry"/>
+                </mxCell>
+                <mxCell id="title" value="PositionManager 構成図 — エントリーフロー" style="text;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="20" width="1300" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="subtitle" value="PositionManager を頂点にトップダウンで組み立て。決済・adapter 実装は別図（composition-exit-and-ports）" style="text;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=0;fontColor=#555555;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="56" width="1300" height="22" as="geometry"/>
+                </mxCell>
+                <mxCell id="layerApp" value="application 層" style="shape=mxgraph.basic.rect;fillColor=#e6f2ff;strokeColor=#99c2ff;fontSize=11;fontStyle=1;verticalAlign=top;spacingTop=4;rounded=0;fontColor=#555555;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="100" width="1360" height="760" as="geometry"/>
+                </mxCell>
+                <mxCell id="layerDomain" value="domain 層（参照のみ）" style="shape=mxgraph.basic.rect;fillColor=#fff2e6;strokeColor=#ffb380;fontSize=11;fontStyle=1;verticalAlign=top;spacingTop=4;rounded=0;fontColor=#555555;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="880" width="1360" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="positionManager" value="PositionManager&#10;（action 層の組み立て役）" style="swimlane;fontStyle=1;align=center;startSize=45;strokeWidth=2;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="480" y="130" width="460" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="positionManagerContent" value="- allocationPolicy: AllocationPolicy&#10;- sizingService: PositionSizingService&#10;- entryQueue: EntryQueue&#10;- positionRepository: PositionRepository&#10;- balancePort / clock / alertPort&#10;{marginRate は持たない: SizingResult が rate と一緒に requiredMargin を運ぶ}&#10;--&#10;+ handleSignals(snapshot, rules): void&#10;{パイプライン: Detect → Allocate → Size → Enqueue}&#10;{Detect:   各 EntryRule を評価し DetectedSignals を作る}&#10;{Allocate: AllocationPolicy.decide(ctx) → LotAllocation}&#10;{Size:     PositionSizingService.executeWithFresh(pair) → SizingResult}&#10;{Enqueue:  各戦略の EntryCommand（requiredMargin 込み）を組み立てて enqueue}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#dae8fc;strokeColor=none;fontSize=11;fontColor=#000000;" parent="positionManager" vertex="1">
+                    <mxGeometry y="45" width="460" height="95" as="geometry"/>
+                </mxCell>
+                <mxCell id="allocPolicyRef" value="AllocationPolicy&#10;（別図: allocation-policy.drawio）" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;fontColor=#555555;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="330" width="290" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="allocPolicyRefContent" value="&lt;&lt;interface&gt;&gt;&#10;+ decide(ctx): LotAllocation&#10;{純粋ドメインサービス}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#f5f5f5;strokeColor=none;fontSize=10;fontColor=#555555;" parent="allocPolicyRef" vertex="1">
+                    <mxGeometry y="40" width="290" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="sizingService" value="PositionSizingService&#10;（旧 DynamicLotCalculator）" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="390" y="330" width="310" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="sizingServiceContent" value="- balancePort: BalancePort&#10;- ratePort: RatePort&#10;- lotPolicy: LotPolicy&#10;- fallbackBalance: Balance&#10;- target: MaintenanceRatio（例 1.4）&#10;- marginRate: MarginRate（infrastructure DI / R10）&#10;--&#10;+ execute(pair): Lot&#10;     [BalancePort.current() ?? fallback、RatePort.currentOf]&#10;+ executeWithFresh(pair): SizingResult&#10;     [BalancePort.freshNow() throw、RatePort.currentFresh throw]&#10;     [SizingResult { lot, rate, requiredMargin } を返す（NH-2）]" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#dae8fc;strokeColor=none;fontSize=11;fontColor=#000000;" parent="sizingService" vertex="1">
+                    <mxGeometry y="40" width="310" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="entryQueue" value="EntryQueue&#10;（順序保持 + TTL 3秒破棄 + 排他 drain）" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="730" y="330" width="310" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="entryQueueContent" value="- entryExecution: EntryExecution&#10;- clock: Clock&#10;- alertPort: AlertPort&#10;- ttlMs: number = 3000&#10;- drainIntervalMs: number = 100&#10;--&#10;+ start() / + stop(): Promise&lt;void&gt;&#10;+ enqueue(cmd: EntryCommand, submittedAt: Date)&#10;+ drain(): Promise&lt;void&gt;（排他 / draining フラグ）&#10;+ reservedMargin(): Money（requiredMargin 合算）&#10;+ drainAndWait(): 通常運用の残留 drain&#10;+ dropAllAtShutdown(): shutdown 時の即時 drop&#10;{POST 1秒1件は GmoRestClient.throttlePost に委譲}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#dae8fc;strokeColor=none;fontSize=11;fontColor=#000000;" parent="entryQueue" vertex="1">
+                    <mxGeometry y="40" width="310" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="posRepo" value="&lt;&lt;interface&gt;&gt;&#10;PositionRepository" style="swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1070" y="330" width="290" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="posRepoContent" value="+ register(position, snapshot?): Promise&lt;void&gt;&#10;+ update(position): Promise&lt;void&gt;&#10;+ findById(id): Promise&lt;Position&gt;&#10;+ findOpenByPairAndStrategy(pair, strategy): Promise&lt;Position | null&gt;&#10;+ openPositions(): Promise&lt;OpenPositions&gt;&#10;{(pair, strategy_name) WHERE status='OPEN' 部分ユニーク}&#10;{違反は DuplicatePositionError で捕捉（R8 二段防御）}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=10;fontColor=#000000;" parent="posRepo" vertex="1">
+                    <mxGeometry y="45" width="290" height="95" as="geometry"/>
+                </mxCell>
+                <mxCell id="balancePort" value="&lt;&lt;interface&gt;&gt;&#10;BalancePort" style="swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="263" y="553" width="249" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="balancePortContent" value="+ current(): Balance | null（キャッシュ OK、null 許容）&#10;+ freshNow(): Balance（発注直前。失敗時は throw）&#10;+ availableAmount(): AvailableBalance（含み損益込み一次採用 / R5）&#10;{port 層は null 許容、ドメイン VO は null を返さない（憲法 6.7）}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=10;fontColor=#000000;" parent="balancePort" vertex="1">
+                    <mxGeometry y="45" width="249" height="95" as="geometry"/>
+                </mxCell>
+                <mxCell id="ratePort" value="&lt;&lt;interface&gt;&gt;&#10;RatePort" style="swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="561" y="553" width="256" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="clockPort" value="&lt;&lt;interface&gt;&gt;&#10;Clock" style="swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="850" y="553" width="240" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="clockPortContent" value="+ now(): Date&#10;{時刻取得の抽象。EntryQueue の TTL 判定で使う}&#10;{実装: SystemClock / FakeClock}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=10;fontColor=#000000;" parent="clockPort" vertex="1">
+                    <mxGeometry y="45" width="240" height="95" as="geometry"/>
+                </mxCell>
+                <mxCell id="alertPort" value="&lt;&lt;interface&gt;&gt;&#10;AlertPort" style="swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1120" y="553" width="270" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="alertPortContent" value="+ notify(level: AlertLevel, message, ctx?)&#10;{level: 'critical' | 'error' | 'warn' | 'info'}&#10;{ドメイン語彙でログ出力（憲法 6.11）}&#10;{UiNotifier とは責務直交（NH-3）}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=10;fontColor=#000000;" parent="alertPort" vertex="1">
+                    <mxGeometry y="45" width="270" height="95" as="geometry"/>
+                </mxCell>
+                <mxCell id="ratePortContent" value="+ currentOf(pair): Rate（キャッシュ可、失敗時 throw）&#10;+ currentFresh(pair): Rate（鮮度保証、古ければ throw / R4）&#10;{Rate.isFreshEnough を内部で判定（憲法 6.9）}&#10;{null は返さない（憲法 6.7）}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=10;fontColor=#000000;" parent="ratePort" vertex="1">
+                    <mxGeometry y="45" width="256" height="95" as="geometry"/>
+                </mxCell>
+                <mxCell id="entryExec" value="EntryExecution&#10;（エントリー執行）" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="730" y="740" width="310" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="entryExecContent" value="- broker: Broker&#10;- positionRepository: PositionRepository&#10;- alertPort: AlertPort&#10;--&#10;+ openPosition(cmd: EntryCommand): void&#10;{失敗時は AlertPort.notify('warn'/'critical')}&#10;{ゴーストポジション補償: broker 成功 → DB register 失敗時は&#10; 即時 placeExit + AlertPort.notify('critical')}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#dae8fc;strokeColor=none;fontSize=11;fontColor=#000000;" parent="entryExec" vertex="1">
+                    <mxGeometry y="40" width="310" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="broker" value="&lt;&lt;interface&gt;&gt;&#10;Broker" style="swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="730" y="920" width="310" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="brokerContent" value="+ placeEntry(cmd): Promise&lt;EntryResult&gt;&#10;+ placeExit(position): Promise&lt;ExitResult&gt;" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=10;fontColor=#000000;" parent="broker" vertex="1">
+                    <mxGeometry y="45" width="310" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="lotPolicyRef" value="LotPolicy&#10;（別図: value-objects-and-lot-policy.drawio）" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#fff2e6;strokeColor=#ffb380;fontSize=11;fontColor=#555555;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="70" y="900" width="290" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="lotPolicyRefContent" value="&lt;&lt;interface&gt;&gt;&#10;+ decide(input: LotDecisionInput): Lot&#10;{純粋ドメインサービス}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2e6;strokeColor=none;fontSize=10;fontColor=#555555;" parent="lotPolicyRef" vertex="1">
+                    <mxGeometry y="40" width="290" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="entryCommandRef" value="EntryCommand&#10;（domain VO）" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#fff2e6;strokeColor=#ffb380;fontSize=11;fontColor=#555555;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="400" y="900" width="340" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="entryCommandRefContent" value="pair / buySell / lot / strategyName&#10;reason / convictionScore / entrySnapshot&#10;requiredMargin: Money（Step 6 で追加 / R2）&#10;{requiredMargin = rate × lot × marginRate を生成時に確定}&#10;{EntryQueue.reservedMargin() は requiredMargin を合算するだけ}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2e6;strokeColor=none;fontSize=10;fontColor=#555555;" parent="entryCommandRef" vertex="1">
+                    <mxGeometry y="40" width="340" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="duplicateErrorRef" value="DuplicatePositionError&#10;（専用エラー型）" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#fff2e6;strokeColor=#ffb380;fontSize=11;fontColor=#555555;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="780" y="900" width="320" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="duplicateErrorRefContent" value="{(pair, strategy_name) OPEN ユニーク制約違反で throw}&#10;{二段防御: アプリ層 findOpenByPairAndStrategy → DB ユニーク}&#10;{捕捉時 AlertPort.notify('info', 'duplicate entry suppressed')}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2e6;strokeColor=none;fontSize=10;fontColor=#555555;" parent="duplicateErrorRef" vertex="1">
+                    <mxGeometry y="40" width="320" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="groupNotes" value="設計のポイント" style="shape=mxgraph.basic.rect;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=4;rounded=1;arcSize=4;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1420" y="100" width="560" height="1250" as="geometry"/>
+                </mxCell>
+                <mxCell id="note1" value="PositionManager が action 層の組み立て役&#10;&#10;・AllocationPolicy で配分決定&#10;・PositionSizingService で各戦略の Lot 算出&#10;・EntryQueue に EntryCommand を流す&#10;&#10;自分は「順序制御」と「材料の調達」に徹する。&#10;計算や判断はドメインサービスに任せる。" style="shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="1440" y="140" width="520" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="note2" value="PositionSizingService は I/O の組み立て役&#10;&#10;・BalancePort.current() ?? fallbackBalance&#10;・RatePort.currentOf(pair) で Rate 取得&#10;・LotPolicy.decide(LotDecisionInput) で計算&#10;&#10;値オブジェクトで束ね、純粋ドメインサービス&#10;（LotPolicy）に渡す。I/O は application 層で完結。" style="shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="1440" y="380" width="520" height="230" as="geometry"/>
+                </mxCell>
+                <mxCell id="note3" value="BalancePort / RatePort は 2〜3 メソッド契約&#10;&#10;BalancePort:&#10;・current(): Balance | null（キャッシュ可、null 許容）&#10;・freshNow(): Balance（発注直前。失敗時 throw）&#10;・availableAmount(): AvailableBalance（含み損益込み一次採用）&#10;RatePort:&#10;・currentOf(pair): Rate（失敗時 throw）&#10;・currentFresh(pair): Rate（鮮度保証、古ければ throw）&#10;&#10;憲法 6.7「null を返さない」: ドメイン VO は throw、port 層のみ null 許容。&#10;憲法 6.9: 鮮度判定は RatePort 実装が Rate.isFreshEnough を使って行う。" style="shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="1440" y="630" width="520" height="210" as="geometry"/>
+                </mxCell>
+                <mxCell id="note4" value="EntryQueue の責務分担（brief 5.5 R1 / policies 3.4）&#10;&#10;EntryQueue:&#10;・順序保持（FIFO）&#10;・TTL 3 秒破棄（古いシグナルで古値発注を防ぐ）&#10;・排他 drain（draining フラグで並列 drain 防止 / C9）&#10;・dropAllAtShutdown（shutdown=強制決済を伴うため即時破棄 / P12）&#10;&#10;GmoRestClient.throttlePost（既存）:&#10;・POST 1 秒 1 件の実レート制限&#10;&#10;EntryQueue 側で 1 秒制限を守る必要はない。&#10;責務分離: queue は順序保持＋TTL、レート制限は HTTP 層。" style="shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="1440" y="860" width="520" height="230" as="geometry"/>
+                </mxCell>
+                <mxCell id="note5" value="PositionRepository の OPEN 部分ユニーク&#10;&#10;・(pair, strategy_name) で OPEN は 1 つだけ&#10;・部分インデックス: WHERE status = 'OPEN'&#10;・CLOSED は何本あってもよい&#10;&#10;将来「同戦略で複数ポジション」に広げるのは&#10;制約を緩和するだけで済む。" style="shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="1440" y="1110" width="520" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="ePM_Alloc" value="uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.1;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="positionManager" target="allocPolicyRef" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ePM_Sizing" value="uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="positionManager" target="sizingService" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ePM_Queue" value="enqueue" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.7;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="positionManager" target="entryQueue" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ePM_Repo" value="reads open" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.9;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="positionManager" target="posRepo" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eSizing_Balance" value="uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="sizingService" target="balancePort" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eSizing_Rate" value="uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.7;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="sizingService" target="ratePort" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eSizing_LotPolicy" value="uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="sizingService" target="lotPolicyRef" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="390" y="479"/>
+                            <mxPoint x="215" y="479"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="eQueue_Exec" value="executes" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="entryQueue" target="entryExec" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="885" y="681"/>
+                            <mxPoint x="885" y="681"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="eExec_Broker" value="places" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="entryExec" target="broker" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eExec_Repo" value="register" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="entryExec" target="posRepo" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

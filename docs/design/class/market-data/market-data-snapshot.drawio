@@ -1,0 +1,84 @@
+<mxfile host="65bd71144e">
+    <diagram name="相場概況 クラス図" id="market-data-snapshot">
+        <mxGraphModel dx="1104" dy="786" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="bg" value="" style="whiteSpace=wrap;fontColor=#333333;fillColor=#f5f5f5;strokeColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry width="900" height="500" as="geometry"/>
+                </mxCell>
+                <mxCell id="title" value="相場概況 クラス図" style="text;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#333333;" parent="1" vertex="1">
+                    <mxGeometry x="20" y="10" width="300" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="marketSnapshot" value="MarketSnapshot&#10;相場概況" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="70" width="340" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="marketSnapshotContent" value="tick: Tick&#10;pair: CurrencyPair&#10;timeFrames: Map&lt;TimeFrame, TimeFrameSnapshot&gt;&#10;capturedAt: Timestamp" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=11;fontColor=#000000;" parent="marketSnapshot" vertex="1">
+                    <mxGeometry y="40" width="340" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="tfSnapshot" value="TimeFrameSnapshot" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="520" y="80" width="280" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="tfSnapshotContent" value="confirmed: ConfirmedCandle&#10;forming: FormingCandle&#10;indicators: IndicatorValues" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=11;fontColor=#000000;" parent="tfSnapshot" vertex="1">
+                    <mxGeometry y="30" width="280" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="note1" value="値オブジェクト。振る舞いを持たない。&#10;Ruleが判定に必要な情報の断面写真。&#10;Ruleはこれだけを受け取る。&#10;tickの生データも、SMAの計算方法も、&#10;足の組み立て方法も知らない" style="shape=note;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;whiteSpace=wrap;size=14;" parent="1" vertex="1">
+                    <mxGeometry x="93" y="196" width="300" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="refTick" value="Tick&#10;(market-data-candle.drawio)" style="rounded=0;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#999999;dashed=1;fontSize=11;fontStyle=1;fontColor=#666666;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="370" width="150" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="refConfirmedCandle" value="ConfirmedCandle&#10;(market-data-candle.drawio)" style="rounded=0;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#999999;dashed=1;fontSize=11;fontStyle=1;fontColor=#666666;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="210" y="370" width="180" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="refFormingCandle" value="FormingCandle&#10;(market-data-candle.drawio)" style="rounded=0;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#999999;dashed=1;fontSize=11;fontStyle=1;fontColor=#666666;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="410" y="370" width="180" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="refIndicatorValues" value="IndicatorValues&#10;(market-data-indicator.drawio)" style="rounded=0;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#999999;dashed=1;fontSize=11;fontStyle=1;fontColor=#666666;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="610" y="370" width="190" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="refCurrencyPair" value="CurrencyPair&#10;(action-layer.drawio)" style="rounded=0;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#999999;dashed=1;fontSize=11;fontStyle=1;fontColor=#666666;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="440" width="150" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="a1" value="" style="endArrow=open;endFill=0;strokeColor=#333333;fontSize=10;exitX=1;exitY=0.4;exitDx=0;exitDy=0;entryX=0;entryY=0.4;entryDx=0;entryDy=0;" parent="1" source="marketSnapshot" target="tfSnapshot" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="a1label" value="has-a 1..3（固定トリオ）" style="text;align=center;fontSize=10;fontColor=#333333;" parent="1" vertex="1">
+                    <mxGeometry x="410" y="118" width="70" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="a2" value="" style="endArrow=open;endFill=0;strokeColor=#333333;fontSize=10;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="tfSnapshot" target="refConfirmedCandle" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="604" y="300"/>
+                            <mxPoint x="300" y="300"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="a3" value="" style="endArrow=open;endFill=0;strokeColor=#333333;fontSize=10;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="tfSnapshot" target="refFormingCandle" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="660" y="320"/>
+                            <mxPoint x="500" y="320"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="a4" value="" style="endArrow=open;endFill=0;strokeColor=#333333;fontSize=10;exitX=0.7;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="tfSnapshot" target="refIndicatorValues" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="716" y="340"/>
+                            <mxPoint x="705" y="340"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="a5" value="" style="endArrow=open;endFill=0;strokeColor=#333333;fontSize=10;exitX=0.15;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="marketSnapshot" target="refTick" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="91" y="340"/>
+                            <mxPoint x="115" y="340"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

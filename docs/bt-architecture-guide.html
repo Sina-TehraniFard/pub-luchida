@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Luchida BT基盤 — アーキテクチャ説明資料</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: #0f172a; margin: 0; }
+    #sidebar {
+      width: 220px;
+      min-width: 220px;
+      height: 100vh;
+      overflow-y: auto;
+      background: #1e293b;
+      border-right: 1px solid #334155;
+      position: fixed;
+      left: 0; top: 0;
+    }
+    #sidebar::-webkit-scrollbar { width: 4px; }
+    #sidebar::-webkit-scrollbar-track { background: #1e293b; }
+    #sidebar::-webkit-scrollbar-thumb { background: #475569; border-radius: 2px; }
+    #main {
+      margin-left: 220px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    #stage {
+      width: min(calc(100vw - 220px - 32px), calc((100vh - 80px) * 16 / 9));
+      aspect-ratio: 16 / 9;
+    }
+    .slide { display: none; width: 100%; height: 100%; }
+    .slide.active { display: flex; }
+    .nav-item {
+      display: block; width: 100%; text-align: left;
+      padding: 8px 14px; font-size: 0.72rem; color: #94a3b8;
+      border-left: 3px solid transparent; transition: all 0.15s;
+      cursor: pointer; background: none;
+      border-top: none; border-right: none; border-bottom: none;
+    }
+    .nav-item:hover { color: #e2e8f0; background: #334155; }
+    .nav-item.active { color: #f97316; border-left-color: #ea580c; background: #431407; }
+    .nav-section {
+      font-size: 0.6rem; font-weight: 800; letter-spacing: 0.1em;
+      color: #475569; padding: 12px 14px 4px; text-transform: uppercase;
+    }
+    .badge {
+      display: inline-block; padding: 2px 10px; border-radius: 9999px;
+      font-size: 0.7em; font-weight: 700; letter-spacing: 0.04em;
+    }
+    .why-box {
+      background: #fefce8; border-left: 4px solid #eab308;
+      border-radius: 0 8px 8px 0; padding: 8px 12px;
+      font-size: 0.78em; color: #713f12;
+    }
+    .warn-box {
+      background: #fef2f2; border-left: 4px solid #ef4444;
+      border-radius: 0 8px 8px 0; padding: 8px 12px;
+      font-size: 0.78em; color: #7f1d1d;
+    }
+    .ok-box {
+      background: #f0fdf4; border-left: 4px solid #22c55e;
+      border-radius: 0 8px 8px 0; padding: 8px 12px;
+      font-size: 0.78em; color: #14532d;
+    }
+    .layer-badge {
+      font-size: 0.62em; font-weight: 800; letter-spacing: 0.06em;
+      padding: 2px 8px; border-radius: 4px;
+    }
+    .card { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .flow-arrow { color: #94a3b8; font-size: 1.2em; }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <div class="p-4 border-b border-slate-700">
+    <p class="text-xs font-black text-orange-400 tracking-widest">Luchida BT</p>
+    <p class="text-xs text-slate-500 mt-0.5">アーキテクチャ説明資料</p>
+  </div>
+
+  <div class="nav-section">導入</div>
+  <button class="nav-item" data-slide="0">01 タイトル</button>
+  <button class="nav-item" data-slide="1">02 なぜ BT 基盤を作るのか</button>
+  <button class="nav-item" data-slide="2">03 データ基盤（完成済み）</button>
+
+  <div class="nav-section">アーキテクチャ</div>
+  <button class="nav-item" data-slide="3">04 全体像 — 5つの部品</button>
+  <button class="nav-item" data-slide="4">05 Runner — 司令塔</button>
+  <button class="nav-item" data-slide="5">06 Engine — 実行ループ</button>
+  <button class="nav-item" data-slide="6">07 Rule — 判定だけ</button>
+  <button class="nav-item" data-slide="7">08 ExecutionSimulator</button>
+  <button class="nav-item" data-slide="8">09 DataProvider / SnapshotAdapter</button>
+
+  <div class="nav-section">2段階テスト</div>
+  <button class="nav-item" data-slide="9">10 Phase 1 — 高速スキャン</button>
+  <button class="nav-item" data-slide="10">11 Phase 2 — 精密検証</button>
+
+  <div class="nav-section">安全装置</div>
+  <button class="nav-item" data-slide="11">12 時間整合性（バイアス防止）</button>
+  <button class="nav-item" data-slide="12">13 Warmup 期間</button>
+
+  <div class="nav-section">今後</div>
+  <button class="nav-item" data-slide="13">14 やること一覧</button>
+  <button class="nav-item" data-slide="14">15 関連 Issue マップ</button>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+  <div id="stage" class="relative">
+
+    <!-- SLIDE 01: タイトル -->
+    <div class="slide flex-col items-center justify-center h-full bg-gradient-to-br from-orange-600 via-amber-500 to-yellow-500 rounded-2xl p-12 text-white">
+      <span class="badge bg-white/20 text-white text-sm tracking-widest mb-6">BACKTEST ARCHITECTURE</span>
+      <h1 class="text-5xl font-black text-center mb-4 leading-tight">
+        Luchida<br>バックテスト実行基盤
+      </h1>
+      <p class="text-xl text-orange-100 mb-2">20年分のデータで、最適な戦略を見つける</p>
+      <p class="text-sm text-orange-200 mb-8">Engine / Rule / Parameter / Runner の設計と実装計画</p>
+      <div class="flex gap-6 text-sm text-orange-100">
+        <span>2026-04-13</span>
+        <span>Issue #71</span>
+        <span>USD/JPY, EUR/USD, GBP/USD</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 02: なぜ -->
+    <div class="slide flex-col h-full bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-8">
+      <h2 class="text-2xl font-black text-slate-700 mb-2">なぜ BT 基盤を作るのか</h2>
+      <p class="text-xs text-slate-500 mb-5">現状の問題と、基盤が解決すること</p>
+      <div class="flex gap-5 flex-1">
+        <div class="flex-1 flex flex-col gap-3">
+          <div class="card border-2 border-red-200">
+            <p class="text-xs font-bold text-red-500 mb-2">今の問題</p>
+            <ul class="text-sm text-slate-700 space-y-2">
+              <li>GMO API の15分足に依存 → <strong>7分足や3分足でテストできない</strong></li>
+              <li>取得できる過去データが限定的 → <strong>長期の検証ができない</strong></li>
+              <li>スクリプトがベタ書き → <strong>60パターンの一括比較ができない</strong></li>
+              <li>「この戦略が一番いい」を<strong>データで証明できない</strong></li>
+            </ul>
+          </div>
+          <div class="card border-2 border-green-200">
+            <p class="text-xs font-bold text-green-600 mb-2">基盤で解決すること</p>
+            <ul class="text-sm text-slate-700 space-y-2">
+              <li>任意の時間足（1分〜15分、7分も3分も）</li>
+              <li>20年分のデータで長期検証</li>
+              <li>60パターン一括実行 → ランキングで比較</li>
+              <li>本番と同じ Rule をそのまま使える</li>
+            </ul>
+          </div>
+        </div>
+        <div class="flex-1 flex flex-col justify-center">
+          <div class="card bg-amber-50 border border-amber-200 text-center">
+            <p class="text-4xl font-black text-amber-600 mb-2">15足 x 4戦略</p>
+            <p class="text-6xl font-black text-amber-700 mb-2">= 60パターン</p>
+            <p class="text-sm text-amber-600">SMA / RSI / 乖離 / ヒゲ</p>
+            <p class="text-sm text-amber-600">x 1分, 2分, 3分, ... 15分</p>
+            <p class="text-xs text-amber-500 mt-3">全部を数分で回して「どれが一番勝てるか」を出す</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 03: データ基盤 -->
+    <div class="slide flex-col h-full bg-gradient-to-br from-emerald-50 to-green-100 rounded-2xl p-8">
+      <div class="flex items-center gap-3 mb-1">
+        <span class="badge bg-green-500 text-white">完成済み</span>
+        <h2 class="text-2xl font-black text-green-800">データ基盤 — 14億行の tick データ</h2>
+      </div>
+      <p class="text-xs text-green-600 mb-5">Issue #59 | DBサーバ（<PRIVATE_IP>）の TimescaleDB に保存</p>
+      <div class="flex gap-5 flex-1">
+        <div class="flex-1 flex flex-col gap-3">
+          <div class="card">
+            <p class="text-xs font-bold text-slate-500 mb-2">データの流れ</p>
+            <div class="text-sm text-slate-700 space-y-2">
+              <p>1. Dukascopy（無料）から tick データをダウンロード</p>
+              <p>2. DBサーバの TimescaleDB に保存</p>
+              <p>3. <code class="bg-slate-100 px-1 rounded">time_bucket('7 minutes', time)</code> で任意の足に集約</p>
+              <p>4. Mac から Tailscale 経由でクエリ</p>
+            </div>
+          </div>
+          <div class="card">
+            <table class="text-sm w-full">
+              <thead><tr class="text-slate-500 text-xs"><th class="text-left py-1">ペア</th><th class="text-right">tick 数</th><th class="text-right">期間</th></tr></thead>
+              <tbody class="text-slate-700">
+                <tr><td class="py-1">USD/JPY</td><td class="text-right font-mono">4.6億</td><td class="text-right">2006〜2026</td></tr>
+                <tr><td class="py-1">EUR/USD</td><td class="text-right font-mono">4.5億</td><td class="text-right">2006〜2026</td></tr>
+                <tr><td class="py-1">GBP/USD</td><td class="text-right font-mono">4.9億</td><td class="text-right">2006〜2026</td></tr>
+                <tr class="font-bold border-t"><td class="py-1">合計</td><td class="text-right font-mono">14億行</td><td class="text-right">20年分</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="flex-1 flex flex-col gap-3">
+          <div class="ok-box">
+            <p class="font-bold mb-1">欠損ゼロ確認済み</p>
+            <p>3ペア x 243ヶ月、全月で5万tick以上あることを検証済み（2026-04-11）</p>
+          </div>
+          <div class="card">
+            <p class="text-xs font-bold text-slate-500 mb-2">time_bucket が強力</p>
+            <div class="text-sm text-slate-700 space-y-1">
+              <p><code class="bg-slate-100 px-1 rounded">time_bucket('1 minute', time)</code> → 1分足</p>
+              <p><code class="bg-slate-100 px-1 rounded">time_bucket('7 minutes', time)</code> → 7分足</p>
+              <p><code class="bg-slate-100 px-1 rounded">time_bucket('15 minutes', time)</code> → 15分足</p>
+              <p class="text-xs text-slate-500 mt-2">tick → 任意の足を SQL 1発で生成。自前の変換ツール不要</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 04: 全体像 -->
+    <div class="slide flex-col h-full bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-8">
+      <h2 class="text-2xl font-black text-slate-700 mb-1">全体像 — 6つの部品</h2>
+      <p class="text-xs text-slate-500 mb-4">それぞれが1つの仕事だけを担当。お互いの中身を知らない</p>
+      <div class="flex gap-3 flex-1">
+        <div class="flex flex-col gap-2 flex-1">
+          <div class="card bg-purple-50 border-2 border-purple-300 flex-1">
+            <p class="layer-badge bg-purple-600 text-white mb-2">RUNNER</p>
+            <p class="text-sm font-bold text-purple-800 mb-1">司令塔</p>
+            <p class="text-xs text-purple-700">パラメータを読んで、Engine + Rule を組み立てて実行。結果を集めて保存</p>
+          </div>
+          <div class="flow-arrow text-center">↓ 生成・実行</div>
+          <div class="card bg-orange-50 border-2 border-orange-300 flex-1">
+            <p class="layer-badge bg-orange-500 text-white mb-2">ENGINE</p>
+            <p class="text-sm font-bold text-orange-800 mb-1">実行ループ</p>
+            <p class="text-xs text-orange-700">足を1本ずつ処理。Rule を呼んで、シミュレーターで約定して、結果を集計</p>
+          </div>
+          <div class="flow-arrow text-center">↓ 各足で呼ぶ</div>
+          <div class="card bg-sky-50 border-2 border-sky-300 flex-1">
+            <p class="layer-badge bg-sky-500 text-white mb-2">RULE</p>
+            <p class="text-sm font-bold text-sky-800 mb-1">判定だけ</p>
+            <p class="text-xs text-sky-700">「買い / 売り / 何もしない」を返すだけ。本番と全く同じコード</p>
+          </div>
+        </div>
+        <div class="flex flex-col gap-2 flex-1">
+          <div class="card bg-red-50 border-2 border-red-200 flex-1">
+            <p class="layer-badge bg-red-500 text-white mb-2">EXECUTION SIMULATOR</p>
+            <p class="text-sm font-bold text-red-800 mb-1">約定の再現</p>
+            <p class="text-xs text-red-700">Phase 1: 次の足の open で即約定<br>Phase 2: bid/ask + スリッページ + 遅延</p>
+          </div>
+          <div class="card bg-green-50 border-2 border-green-200 flex-1">
+            <p class="layer-badge bg-green-600 text-white mb-2">DATA PROVIDER</p>
+            <p class="text-sm font-bold text-green-800 mb-1">データ取得</p>
+            <p class="text-xs text-green-700">TimescaleDB から OHLC or tick を取得。Engine は DB を知らない</p>
+          </div>
+          <div class="card bg-yellow-50 border-2 border-yellow-200 flex-1">
+            <p class="layer-badge bg-yellow-600 text-white mb-2">SNAPSHOT ADAPTER</p>
+            <p class="text-sm font-bold text-yellow-800 mb-1">データ変換</p>
+            <p class="text-xs text-yellow-700">BT のデータ → 本番と同じ MarketSnapshot に変換。Rule が違いに気付かない</p>
+          </div>
+        </div>
+        <div class="flex flex-col gap-2 w-44">
+          <div class="card bg-slate-50 border border-slate-200">
+            <p class="text-xs font-bold text-slate-500 mb-2">依存の方向</p>
+            <div class="text-xs text-slate-600 space-y-1">
+              <p>Runner → Engine → Rule</p>
+              <p>Engine → Simulator</p>
+              <p>Engine → DataProvider</p>
+              <p>Engine → SnapshotAdapter</p>
+              <p>Runner → ResultStore</p>
+            </div>
+            <p class="text-xs text-slate-400 mt-2">矢印は「使う側 → 使われる側」<br>逆方向の依存はゼロ</p>
+          </div>
+          <div class="card bg-slate-50 border border-slate-200">
+            <p class="text-xs font-bold text-slate-500 mb-2">ParameterSet</p>
+            <p class="text-xs text-slate-600">ただのデータ。Runner だけが読む。他の部品には渡さない</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 05: Runner -->
+    <div class="slide flex-col h-full bg-gradient-to-br from-purple-50 to-violet-100 rounded-2xl p-8">
+      <div class="flex items-center gap-3 mb-1">
+        <span class="layer-badge bg-purple-600 text-white">RUNNER</span>
+        <h2 class="text-2xl font-black text-purple-800">Runner — 司令塔</h2>
+      </div>
+      <p class="text-xs text-purple-500 mb-5">ParameterSet を読む唯一の存在。全部品を組み立てて実行する</p>
+      <div class="flex gap-5 flex-1">
+        <div class="flex-1 flex flex-col gap-3">
+          <div class="card">
+            <p class="text-xs font-bold text-slate-500 mb-2">Runner がやること</p>
+            <div class="text-sm text-slate-700 space-y-2">
+              <p>1. ParameterSet（60セット）を読む</p>
+              <p>2. 各セットごとに Engine + Rule + Simulator を生成</p>
+              <p>3. Engine を実行 → BacktestResult が返る</p>
+              <p>4. 全結果を ResultStore に保存</p>
+            </div>
+          </div>
+          <div class="why-box">
+            <p class="font-bold mb-1">なぜ Runner だけが ParameterSet を読むのか</p>
+            <p>Engine や Rule にパラメータを直接渡すと、各部品が「自分に関係ない設定」まで見えてしまう。<br>Runner が読んで、各部品が必要とする型に変換して注入する。情報の漏洩を防ぐ設計。</p>
+          </div>
+        </div>
+        <div class="flex-1 flex flex-col gap-3">
+          <div class="card bg-purple-50">
+            <p class="text-xs font-bold text-purple-600 mb-2">ParameterSet の例</p>
+            <div class="text-xs font-mono text-purple-800 space-y-1 bg-white rounded-lg p-3">
+              <p>{ timeframe: '7m',</p>
+              <p>&nbsp;&nbsp;pair: 'USD_JPY',</p>
+              <p>&nbsp;&nbsp;strategy: 'SMA_CROSS',</p>
+              <p>&nbsp;&nbsp;shortPeriod: 25,</p>
+              <p>&nbsp;&nbsp;longPeriod: 75,</p>
+              <p>&nbsp;&nbsp;dateFrom: '2006-01-01',</p>
+              <p>&nbsp;&nbsp;dateTo: '2026-03-31' }</p>
+            </div>
+          </div>
+          <div class="card bg-purple-50">
+            <p class="text-xs font-bold text-purple-600 mb-2">Runner が変換する先</p>
+            <div class="text-xs text-purple-700 space-y-1">
+              <p><span class="badge bg-orange-100 text-orange-700">EngineConfig</span> timeframe, pair, dateRange</p>
+              <p><span class="badge bg-sky-100 text-sky-700">Rule</span> 戦略パラメータ注入済みインスタンス</p>
+              <p><span class="badge bg-red-100 text-red-700">Simulator</span> Ideal or Realistic</p>
+              <p><span class="badge bg-green-100 text-green-700">DataProvider</span> TimescaleDataProvider</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 06: Engine -->
+    <div class="slide flex-col h-full bg-gradient-to-br from-orange-50 to-amber-100 rounded-2xl p-8">
+      <div class="flex items-center gap-3 mb-1">
+        <span class="layer-badge bg-orange-500 text-white">ENGINE</span>
+        <h2 class="text-2xl font-black text-orange-800">Engine — 実行ループ</h2>
+      </div>
+      <p class="text-xs text-orange-500 mb-5">足を1本ずつ処理する。自分では判定も約定もデータ取得もしない</p>
+      <div class="flex gap-5 flex-1">
+        <div class="flex-1 flex flex-col gap-3">
+          <div class="card">
+            <p class="text-xs font-bold text-slate-500 mb-2">Engine のループ（擬似コード）</p>
+            <div class="text-xs font-mono bg-slate-900 text-slate-100 rounded-lg p-4 space-y-1">
+              <p><span class="text-green-400">// 1. データ取得</span></p>
+              <p>candles = dataProvider.getOHLC(config)</p>
+              <p></p>
+              <p><span class="text-green-400">// 2. 足ごとにループ</span></p>
+              <p><span class="text-blue-400">for</span> (candle <span class="text-blue-400">of</span> candles) {</p>
+              <p>&nbsp;&nbsp;<span class="text-green-400">// 3. Snapshot 組立</span></p>
+              <p>&nbsp;&nbsp;snapshot = adapter.build(candle)</p>
+              <p></p>
+              <p>&nbsp;&nbsp;<span class="text-green-400">// 4. Rule に判定させる</span></p>
+              <p>&nbsp;&nbsp;command = rule.shouldEntry(snapshot)</p>
+              <p></p>
+              <p>&nbsp;&nbsp;<span class="text-green-400">// 5. 約定シミュレーション</span></p>
+              <p>&nbsp;&nbsp;result = simulator.simulateEntry(command)</p>
+              <p></p>
+              <p>&nbsp;&nbsp;<span class="text-green-400">// 6. ポジション管理</span></p>
+              <p>&nbsp;&nbsp;position = Position.open(command, result)</p>
+              <p>&nbsp;&nbsp;positions.set(result.id, position)</p>
+              <p>}</p>
+            </div>
+          </div>
+        </div>
+        <div class="flex-1 flex flex-col gap-3">
+          <div class="why-box">
+            <p class="font-bold mb-1">Engine が知っていること</p>
+            <p>EngineConfig（期間・足・ペア）と、4つのインターフェースだけ。<br>DB の種類も、戦略の中身も、約定のやり方も知らない。</p>
+          </div>
+          <div class="card">
+            <p class="text-xs font-bold text-slate-500 mb-2">Engine が知らないこと</p>
+            <div class="text-sm text-slate-700 space-y-1">
+              <p>- ParameterSet の存在</p>
+              <p>- Rule が SMA なのか RSI なのか</p>
+              <p>- データが TimescaleDB から来ているのか CSV か</p>
+              <p>- 約定が理想なのか現実なのか</p>
+            </div>
+          </div>
+          <div class="ok-box">
+            <p class="font-bold mb-1">Phase 1 と Phase 2 で同じコード</p>
+            <p>違いは Runner が注入する DataProvider と Simulator の実装だけ。Engine の if 分岐はゼロ。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 07: Rule -->
+    <div class="slide flex-col h-full bg-gradient-to-br from-sky-50 to-blue-100 rounded-2xl p-8">
+      <div class="flex items-center gap-3 mb-1">
+        <span class="layer-badge bg-sky-500 text-white">RULE</span>
+        <h2 class="text-2xl font-black text-sky-800">Rule — 判定だけ</h2>
+      </div>
+      <p class="text-xs text-sky-500 mb-5">本番の Rule をそのまま使う。BT 用に書き換えない</p>
+      <div class="flex gap-5 flex-1">
+        <div class="flex-1 flex flex-col gap-3">
+          <div class="card">
+            <p class="text-xs font-bold text-slate-500 mb-2">Rule のインターフェース</p>
+            <div class="text-xs font-mono bg-slate-900 text-slate-100 rounded-lg p-4">
+              <p><span class="text-blue-400">interface</span> <span class="text-yellow-300">EntryRule</span> {</p>
+              <p>&nbsp;&nbsp;shouldEntry(snapshot: MarketSnapshot)</p>
+              <p>&nbsp;&nbsp;&nbsp;&nbsp;: EntryCommand | DoNothing</p>
+              <p>}</p>
+              <p></p>
+              <p><span class="text-blue-400">interface</span> <span class="text-yellow-300">ExitRule</span> {</p>
+              <p>&nbsp;&nbsp;shouldExit(snapshot, position)</p>
+              <p>&nbsp;&nbsp;&nbsp;&nbsp;: ExitCommand | DoNothing</p>
+              <p>}</p>
+            </div>
+          </div>
+          <div class="why-box">
+            <p class="font-bold mb-1">なぜ本番のコードをそのまま使うのか</p>
+            <p>BT 用に書き換えると「BT では勝つが本番では負ける」が起こる。<br>同じコードで検証するからこそ、BT の結果が本番に直結する。</p>
+          </div>
+        </div>
+        <div class="flex-1 flex flex-col gap-3">
+          <div class="card">
+            <p class="text-xs font-bold text-slate-500 mb-2">4つの戦略</p>
+            <div class="space-y-2">
+              <div class="flex items-center gap-2"><span class="badge bg-orange-100 text-orange-700">SMA</span><p class="text-sm text-slate-700">短期・長期 SMA のクロスで売買</p></div>
+              <div class="flex items-center gap-2"><span class="badge bg-blue-100 text-blue-700">RSI</span><p class="text-sm text-slate-700">買われすぎ・売られすぎで逆張り</p></div>
+              <div class="flex items-center gap-2"><span class="badge bg-green-100 text-green-700">乖離</span><p class="text-sm text-slate-700">SMA からの乖離率で逆張り</p></div>
+              <div class="flex items-center gap-2"><span class="badge bg-purple-100 text-purple-700">ヒゲ</span><p class="text-sm text-slate-700">ローソク足のヒゲの長さで逆張り</p></div>
+            </div>
+          </div>
+          <div class="card">
+            <p class="text-xs font-bold text-slate-500 mb-2">Rule は何を知っているか</p>
+            <p class="text-sm text-slate-700">MarketSnapshot（市場データ）だけ。Engine も Runner も BT の存在すら知らない。</p>
+          </div>
+          <div class="card bg-sky-50">
+            <p class="text-xs font-bold text-sky-600 mb-1">SnapshotAdapter のおかげで</p>
+            <p class="text-xs text-sky-700">Rule は「今、本番で動いている」のか「20年前のデータでテストされている」のか区別できない。これが正しい設計。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 08: ExecutionSimulator -->
+    <div class="slide flex-col h-full bg-gradient-to-br from-red-50 to-rose-100 rounded-2xl p-8">
+      <div class="flex items-center gap-3 mb-1">
+        <span class="layer-badge bg-red-500 text-white">EXECUTION SIMULATOR</span>
+        <h2 class="text-2xl font-black text-red-800">ExecutionSimulator — 約定の再現</h2>
+      </div>
+      <p class="text-xs text-red-500 mb-5">Issue #70 | 「どの価格で約定したか」をシミュレートする</p>
+      <div class="flex gap-5 flex-1">
+        <div class="flex-1 flex flex-col gap-3">
+          <div class="card border-2 border-amber-200">
+            <p class="text-xs font-bold text-amber-600 mb-2">IdealExecutionSimulator（Phase 1）</p>
+            <div class="text-sm text-slate-700 space-y-1">
+              <p>足 N+1 の open で即約定</p>
+              <p>スプレッドなし、スリッページなし</p>
+              <p>PositionId は UUID で採番</p>
+            </div>
+            <p class="text-xs text-amber-500 mt-2">60パターンを高速に回すためのシンプル版</p>
+          </div>
+          <div class="card border-2 border-red-200">
+            <p class="text-xs font-bold text-red-600 mb-2">RealisticExecutionSimulator（Phase 2）</p>
+            <div class="text-sm text-slate-700 space-y-1">
+              <p>買いは ask、売りは bid で約定</p>
+              <p>スリッページ: 0〜0.5pips のランダムズレ</p>
+              <p>約定遅延: 50〜200ms 後の tick で約定</p>
+            </div>
+            <p class="text-xs text-red-500 mt-2">最終候補を現実に近い条件で検証</p>
+          </div>
+        </div>
+        <div class="flex-1 flex flex-col gap-3">
+          <div class="why-box">
+            <p class="font-bold mb-1">なぜ分けるのか</p>
+            <p>Phase 1 で Realistic を使うと遅すぎる（60パターン x 20年 x tick）。<br>Phase 1 で候補を5つに絞ってから、Phase 2 で精密検証する。</p>
+          </div>
+          <div class="card">
+            <p class="text-xs font-bold text-slate-500 mb-2">Engine のコード（両 Phase で同一）</p>
+            <div class="text-xs font-mono bg-slate-900 text-slate-100 rounded-lg p-3">
+              <p>result = simulator.simulateEntry(cmd, data)</p>
+              <p>position = Position.open(cmd, result)</p>
+              <p>positions.set(result.positionId, position)</p>
+            </div>
+            <p class="text-xs text-slate-500 mt-2">Engine は Ideal か Realistic かを知らない。Runner が注入を切り替えるだけ。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 09: DataProvider / SnapshotAdapter -->
+    <div class="slide flex-col h-full bg-gradient-to-br from-green-50 to-teal-100 rounded-2xl p-8">
+      <div class="flex items-center gap-3 mb-1">
+        <span class="layer-badge bg-green-600 text-white">DATA PROVIDER</span>
+        <span class="layer-badge bg-yellow-600 text-white">SNAPSHOT ADAPTER</span>
+        <h2 class="text-xl font-black text-green-800">データ取得と変換</h2>
+      </div>
+      <p class="text-xs text-green-600 mb-5">Engine は「データをくれ」「Snapshot にしてくれ」と頼むだけ</p>
+      <div class="flex gap-5 flex-1">
+        <div class="flex-1 flex flex-col gap-3">
+          <div class="card border-2 border-green-200">
+            <p class="text-xs font-bold text-green-600 mb-2">DataProvider（インターフェース）</p>
+            <div class="text-sm text-slate-700 space-y-1">
+              <p>「この期間の OHLC をくれ」</p>
+              <p>「この期間の tick をくれ」</p>
+            </div>
+            <p class="text-xs text-green-500 mt-2">Engine は DB を知らない。将来 CSV や GMO API に差し替え可能</p>
+          </div>
+          <div class="card border-2 border-green-100">
+            <p class="text-xs font-bold text-green-600 mb-2">TimescaleDataProvider（実装）</p>
+            <div class="text-sm text-slate-700 space-y-1">
+              <p>Phase 1: <code class="bg-slate-100 px-1 rounded">time_bucket</code> で OHLC を取得</p>
+              <p>Phase 2: 生 tick を期間指定で取得</p>
+            </div>
+          </div>
+        </div>
+        <div class="flex-1 flex flex-col gap-3">
+          <div class="card border-2 border-yellow-200">
+            <p class="text-xs font-bold text-yellow-700 mb-2">BacktestSnapshotAdapter</p>
+            <p class="text-sm text-slate-700 mb-2">BT のデータを本番と同じ MarketSnapshot に変換</p>
+            <table class="text-xs w-full">
+              <thead><tr class="text-slate-500"><th class="text-left py-1">要素</th><th class="text-left">BT での扱い</th></tr></thead>
+              <tbody class="text-slate-700">
+                <tr><td class="py-1 font-bold">Tick</td><td>DB の実 tick（bid/ask）から生成</td></tr>
+                <tr><td class="py-1 font-bold">FormingCandle</td><td>ダミー（次の足の open だけ）</td></tr>
+                <tr><td class="py-1 font-bold">Indicators</td><td>確定足から trading-signals で計算</td></tr>
+                <tr><td class="py-1 font-bold">TimeFrame</td><td>BT 対象の足をマッピング</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="ok-box">
+            <p class="font-bold mb-1">Rule は違いに気付かない</p>
+            <p>本番: WebSocket → MarketSnapshot → Rule<br>BT: TimescaleDB → SnapshotAdapter → MarketSnapshot → Rule<br>Rule が受け取る型は全く同じ</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 10: Phase 1 -->
+    <div class="slide flex-col h-full bg-gradient-to-br from-amber-50 to-orange-100 rounded-2xl p-8">
+      <div class="flex items-center gap-3 mb-1">
+        <span class="badge bg-orange-500 text-white">Phase 1</span>
+        <h2 class="text-2xl font-black text-orange-800">OHLC スキャン — 高速・網羅的</h2>
+      </div>
+      <p class="text-xs text-orange-500 mb-5">60パターンを数分で回して、上位候補を絞り込む</p>
+      <div class="flex gap-5 flex-1">
+        <div class="flex-1 flex flex-col gap-3">
+          <div class="card">
+            <p class="text-xs font-bold text-slate-500 mb-2">処理の流れ</p>
+            <div class="text-sm text-slate-700 space-y-2">
+              <p>1. DataProvider が <code class="bg-slate-100 px-1 rounded">time_bucket</code> で OHLC を取得</p>
+              <p>2. Engine が足を1本ずつループ</p>
+              <p>3. Rule が「買い / 売り / 何もしない」を判定</p>
+              <p>4. IdealExecutionSimulator が<strong>足 N+1 の open</strong> で約定</p>
+              <p>5. BacktestResult（勝率、PF、DD 等）を返す</p>
+            </div>
+          </div>
+          <div class="card bg-amber-50">
+            <p class="text-xs font-bold text-amber-600 mb-2">速度の目安</p>
+            <div class="text-sm text-slate-700">
+              <p>20年の15分足 = 約35万本 → <strong>1〜2秒</strong></p>
+              <p>20年の1分足 = 約525万本 → <strong>十数秒</strong></p>
+              <p>60パターン全部 → <strong>数分</strong></p>
+            </div>
+          </div>
+        </div>
+        <div class="flex-1 flex flex-col gap-3">
+          <div class="card text-center">
+            <p class="text-xs font-bold text-slate-500 mb-3">入力 → 出力</p>
+            <div class="flex items-center justify-center gap-3">
+              <div class="bg-orange-100 rounded-lg p-3">
+                <p class="text-3xl font-black text-orange-600">60</p>
+                <p class="text-xs text-orange-500">パターン</p>
+              </div>
+              <p class="text-2xl text-slate-400">→</p>
+              <div class="bg-green-100 rounded-lg p-3">
+                <p class="text-3xl font-black text-green-600">Top 5</p>
+                <p class="text-xs text-green-500">候補</p>
+              </div>
+            </div>
+          </div>
+          <div class="warn-box">
+            <p class="font-bold mb-1">Phase 1 の限界</p>
+            <p>「理想の世界」での結果。スプレッド・スリッページ・遅延が含まれていない。<br>Phase 1 で勝率70%でも、Phase 2 で55%に落ちるなら見かけ倒し。</p>
+          </div>
+          <div class="why-box">
+            <p class="font-bold mb-1">なぜ Phase 1 だけで済まさないのか</p>
+            <p>コストが含まれていない結果は必ず実際より良く出る。<br>Phase 1 は「ふるい」であり「最終判断」ではない。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 11: Phase 2 -->
+    <div class="slide flex-col h-full bg-gradient-to-br from-red-50 to-pink-100 rounded-2xl p-8">
+      <div class="flex items-center gap-3 mb-1">
+        <span class="badge bg-red-500 text-white">Phase 2</span>
+        <h2 class="text-2xl font-black text-red-800">tick 精密検証 — 高精度・候補のみ</h2>
+      </div>
+      <p class="text-xs text-red-500 mb-5">Phase 1 の上位候補だけを、現実に近い条件で再検証する</p>
+      <div class="flex gap-5 flex-1">
+        <div class="flex-1 flex flex-col gap-3">
+          <div class="card">
+            <p class="text-xs font-bold text-slate-500 mb-2">Phase 1 との違い</p>
+            <table class="text-xs w-full">
+              <thead><tr class="text-slate-500"><th class="text-left py-1"></th><th class="text-left">Phase 1</th><th class="text-left">Phase 2</th></tr></thead>
+              <tbody class="text-slate-700">
+                <tr><td class="py-1 font-bold">データ</td><td>OHLC（集約済み）</td><td>生 tick（bid/ask）</td></tr>
+                <tr><td class="py-1 font-bold">約定</td><td>次の足の open</td><td>bid/ask + ズレ + 遅延</td></tr>
+                <tr><td class="py-1 font-bold">速度</td><td>数分で60パターン</td><td>1パターン数分</td></tr>
+                <tr><td class="py-1 font-bold">対象</td><td>全パターン</td><td>上位候補のみ</td></tr>
+                <tr><td class="py-1 font-bold">結果</td><td>理想的</td><td>現実に近い</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="ok-box">
+            <p class="font-bold mb-1">Engine のコードは同じ</p>
+            <p>Phase 1 と Phase 2 で Engine は同一コード。<br>Runner が注入する Simulator と DataProvider が違うだけ。</p>
+          </div>
+        </div>
+        <div class="flex-1 flex flex-col gap-3">
+          <div class="card">
+            <p class="text-xs font-bold text-slate-500 mb-2">Phase 2 の約定シミュレーション</p>
+            <div class="text-sm text-slate-700 space-y-2">
+              <p><span class="badge bg-blue-100 text-blue-700">bid/ask 分離</span> 買い = ask、売り = bid</p>
+              <p><span class="badge bg-yellow-100 text-yellow-700">スリッページ</span> 0〜0.5pips のランダムズレ</p>
+              <p><span class="badge bg-red-100 text-red-700">約定遅延</span> 50〜200ms 後の tick で約定</p>
+            </div>
+          </div>
+          <div class="card bg-red-50 text-center">
+            <p class="text-xs font-bold text-red-600 mb-2">Phase 2 で結果が悪化する = 健全</p>
+            <div class="flex items-center justify-center gap-3">
+              <div class="bg-amber-100 rounded-lg p-3">
+                <p class="text-xl font-black text-amber-600">勝率 70%</p>
+                <p class="text-xs text-amber-500">Phase 1</p>
+              </div>
+              <p class="text-xl text-slate-400">→</p>
+              <div class="bg-green-100 rounded-lg p-3">
+                <p class="text-xl font-black text-green-600">勝率 62%</p>
+                <p class="text-xs text-green-500">Phase 2</p>
+              </div>
+            </div>
+            <p class="text-xs text-red-500 mt-2">差分 = 現実のコスト。これが小さいほど堅牢な戦略</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 12: 時間整合性 -->
+    <div class="slide flex-col h-full bg-gradient-to-br from-rose-50 to-red-100 rounded-2xl p-8">
+      <div class="flex items-center gap-3 mb-1">
+        <span class="badge bg-red-600 text-white">最重要</span>
+        <h2 class="text-2xl font-black text-red-800">時間整合性 — バイアス防止</h2>
+      </div>
+      <p class="text-xs text-red-500 mb-5">これが崩れるとバックテスト結果が全部嘘になる</p>
+      <div class="flex gap-5 flex-1">
+        <div class="flex-1 flex flex-col gap-3">
+          <div class="warn-box">
+            <p class="font-bold mb-1 text-lg">ルックアヘッドバイアスとは</p>
+            <p>「未来の情報を使って過去の判定をする」こと。<br>例: 15時の足の close で「買いだ」と判定して、同じ 15時の close で約定する。<br>→ 現実では close の値は足が確定するまでわからない。カンニングと同じ。</p>
+          </div>
+          <div class="card border-2 border-green-300">
+            <p class="text-xs font-bold text-green-600 mb-2">正しい順番（本番と同じ）</p>
+            <div class="text-sm text-slate-700 space-y-1">
+              <p>1. 足 N が確定する</p>
+              <p>2. 足 N の confirmed（SMA 等）で Rule が判定</p>
+              <p>3. Rule が「買い」と言う</p>
+              <p>4. <strong>足 N+1 の open</strong>（= 次の最初の価格）で約定</p>
+            </div>
+            <p class="text-xs text-green-600 mt-2 font-bold">判定に使った足の close で約定しない。これが鉄則。</p>
+          </div>
+        </div>
+        <div class="flex-1 flex flex-col gap-3">
+          <div class="card">
+            <p class="text-xs font-bold text-slate-500 mb-2">Phase ごとの約定タイミング</p>
+            <table class="text-sm w-full">
+              <thead><tr class="text-slate-500 text-xs"><th class="text-left py-1">Phase</th><th class="text-left">判定</th><th class="text-left">約定価格</th></tr></thead>
+              <tbody class="text-slate-700">
+                <tr><td class="py-2">Phase 1</td><td>足 N の confirmed</td><td class="font-bold">足 N+1 の open</td></tr>
+                <tr><td class="py-2">Phase 2</td><td>足 N の confirmed</td><td class="font-bold">足 N 確定後の最初の tick</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <p class="text-xs font-bold text-slate-500 mb-2">テストで検証すること</p>
+            <div class="text-sm text-slate-700 space-y-1">
+              <p>- 約定価格が判定足の close と<strong>異なる</strong>こと</p>
+              <p>- 約定時刻が判定足の時刻より<strong>後</strong>であること</p>
+              <p>- warmup 期間中にトレードが<strong>ない</strong>こと</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 13: Warmup -->
+    <div class="slide flex-col h-full bg-gradient-to-br from-yellow-50 to-amber-100 rounded-2xl p-8">
+      <div class="flex items-center gap-3 mb-1">
+        <span class="badge bg-amber-500 text-white">安全装置</span>
+        <h2 class="text-2xl font-black text-amber-800">Warmup 期間</h2>
+      </div>
+      <p class="text-xs text-amber-600 mb-5">インジケーターが有効になるまで Rule を呼ばない</p>
+      <div class="flex gap-5 flex-1">
+        <div class="flex-1 flex flex-col gap-3">
+          <div class="card">
+            <p class="text-xs font-bold text-slate-500 mb-2">問題</p>
+            <p class="text-sm text-slate-700">SMA(100) は100本の確定足がないと有効な値を出せない。<br>最初の99本で Rule を呼ぶと、SMA の値が不正確で<strong>偽シグナルが連発</strong>する。</p>
+          </div>
+          <div class="card">
+            <p class="text-xs font-bold text-slate-500 mb-2">対策</p>
+            <div class="text-sm text-slate-700 space-y-2">
+              <p>1. DataProvider が date_from より<strong>前のデータも warmup 分だけ余分に取得</strong></p>
+              <p>2. SnapshotAdapter はインジケーター計算に全足を使う</p>
+              <p>3. Engine が Rule を呼び始めるのは<strong>warmup 完了後から</strong></p>
+              <p>4. warmup 足数は EngineConfig に含める</p>
+            </div>
+          </div>
+        </div>
+        <div class="flex-1 flex flex-col justify-center">
+          <div class="card bg-amber-50 border-2 border-amber-300">
+            <p class="text-xs font-bold text-amber-600 mb-3">タイムライン</p>
+            <div class="text-xs font-mono space-y-2">
+              <div class="flex items-center gap-2">
+                <div class="bg-slate-300 text-slate-700 rounded px-2 py-1 w-32 text-center">warmup（100本）</div>
+                <p class="text-slate-500">indicators 計算中</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="bg-slate-300 text-slate-700 rounded px-2 py-1 w-32 text-center">↑ ここまで</div>
+                <p class="text-slate-500">Rule を呼ばない。トレードなし</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="bg-green-400 text-white rounded px-2 py-1 w-32 text-center font-bold">ここから →</div>
+                <p class="text-green-700 font-bold">Rule 呼び出し開始。トレード記録</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <div class="bg-green-400 text-white rounded px-2 py-1 w-32 text-center">〜 date_to</div>
+                <p class="text-green-700">BacktestResult に含まれる範囲</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 14: やること -->
+    <div class="slide flex-col h-full bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl p-8 overflow-y-auto">
+      <h2 class="text-2xl font-black text-slate-700 mb-1">やること一覧</h2>
+      <p class="text-xs text-slate-500 mb-4">上から順に。チェックが付いたものは完了</p>
+      <div class="flex gap-4 flex-1">
+        <div class="flex-1 flex flex-col gap-2">
+          <p class="text-xs font-bold text-slate-500 mb-1">設計・型定義</p>
+          <div class="card py-2 text-sm text-slate-700">各レイヤーのインターフェース設計（EngineConfig, BacktestResult, TradeRecord）</div>
+          <div class="card py-2 text-sm text-slate-700">ParameterSet の型定義（戦略ごとの discriminated union）</div>
+          <div class="card py-2 text-sm text-slate-700">本体の ALL_TIMEFRAMES → LIVE_TIMEFRAMES リネーム</div>
+          <p class="text-xs font-bold text-slate-500 mb-1 mt-3">実装</p>
+          <div class="card py-2 text-sm text-slate-700">ExecutionSimulator + IdealExecutionSimulator</div>
+          <div class="card py-2 text-sm text-slate-700">DataProvider + TimescaleDataProvider</div>
+          <div class="card py-2 text-sm text-slate-700">BacktestSnapshotAdapter</div>
+          <div class="card py-2 text-sm text-slate-700">Engine（時系列ループ + Position 管理 + 集計）</div>
+        </div>
+        <div class="flex-1 flex flex-col gap-2">
+          <p class="text-xs font-bold text-slate-500 mb-1">実装（続き）</p>
+          <div class="card py-2 text-sm text-slate-700">Runner（ParameterSet → Engine/Rule/Simulator 生成 → 実行）</div>
+          <div class="card py-2 text-sm text-slate-700">ResultStore + JsonResultStore（初期は JSON 出力）</div>
+          <p class="text-xs font-bold text-slate-500 mb-1 mt-3">検証</p>
+          <div class="card py-2 text-sm text-slate-700">Luchida 本体の Rule との接続確認</div>
+          <div class="card py-2 text-sm text-slate-700">時間整合性の検証テスト</div>
+          <p class="text-xs font-bold text-slate-500 mb-1 mt-3">後続タスク</p>
+          <div class="card py-2 text-sm text-slate-500">#70 RealisticExecutionSimulator（Phase 2 用）</div>
+          <div class="card py-2 text-sm text-slate-500">#74 DB 保存基盤（JSON → PostgreSQL 移行）</div>
+          <div class="card py-2 text-sm text-slate-500">#75 月間成績管理画面</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 15: 関連 Issue -->
+    <div class="slide flex-col items-center justify-center h-full bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-12 text-white">
+      <h2 class="text-3xl font-black mb-8">関連 Issue マップ</h2>
+      <div class="flex gap-6 mb-8">
+        <div class="bg-green-900/50 border border-green-500 rounded-xl p-5 w-56 text-center">
+          <p class="text-green-400 font-bold text-lg mb-1">#59</p>
+          <p class="text-green-300 text-sm">データ基盤</p>
+          <p class="text-green-500 text-xs mt-2">TimescaleDB + Dukascopy</p>
+          <span class="badge bg-green-500 text-white mt-2">完成済み</span>
+        </div>
+        <div class="bg-orange-900/50 border border-orange-500 rounded-xl p-5 w-56 text-center">
+          <p class="text-orange-400 font-bold text-lg mb-1">#71</p>
+          <p class="text-orange-300 text-sm">BT 実行基盤</p>
+          <p class="text-orange-500 text-xs mt-2">Engine / Rule / Runner</p>
+          <span class="badge bg-orange-500 text-white mt-2">設計済み → 実装へ</span>
+        </div>
+      </div>
+      <div class="flex gap-6 mb-8">
+        <div class="bg-red-900/50 border border-red-500 rounded-xl p-5 w-56 text-center">
+          <p class="text-red-400 font-bold text-lg mb-1">#70</p>
+          <p class="text-red-300 text-sm">約定シミュレーター</p>
+          <p class="text-red-500 text-xs mt-2">RealisticExecutionSimulator</p>
+          <span class="badge bg-slate-600 text-white mt-2">次フェーズ</span>
+        </div>
+        <div class="bg-blue-900/50 border border-blue-500 rounded-xl p-5 w-56 text-center">
+          <p class="text-blue-400 font-bold text-lg mb-1">#74</p>
+          <p class="text-blue-300 text-sm">DB 保存基盤</p>
+          <p class="text-blue-500 text-xs mt-2">bt_runs / bt_trades</p>
+          <span class="badge bg-slate-600 text-white mt-2">後追い</span>
+        </div>
+        <div class="bg-purple-900/50 border border-purple-500 rounded-xl p-5 w-56 text-center">
+          <p class="text-purple-400 font-bold text-lg mb-1">#75</p>
+          <p class="text-purple-300 text-sm">月間成績管理画面</p>
+          <p class="text-purple-500 text-xs mt-2">UI</p>
+          <span class="badge bg-slate-600 text-white mt-2">backlog</span>
+        </div>
+      </div>
+      <div class="text-slate-400 text-sm">
+        <p>#59（データ）→ #71（BT基盤）→ #70（精密約定）→ #74（DB保存）</p>
+        <p class="text-xs text-slate-500 mt-1">左から右に依存。右は左が完成してから着手</p>
+      </div>
+    </div>
+
+  </div><!-- /stage -->
+
+  <!-- NAV -->
+  <div class="flex items-center gap-4 mt-4 text-slate-500 text-sm">
+    <button id="prev" class="px-3 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">← Prev</button>
+    <span id="counter" class="font-mono"></span>
+    <button id="next" class="px-3 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">Next →</button>
+  </div>
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const navItems = document.querySelectorAll('.nav-item');
+const counter = document.getElementById('counter');
+let current = 0;
+
+function show(n) {
+  current = Math.max(0, Math.min(n, slides.length - 1));
+  slides.forEach((s, i) => s.classList.toggle('active', i === current));
+  navItems.forEach((b, i) => b.classList.toggle('active', i === current));
+  counter.textContent = `${current + 1} / ${slides.length}`;
+}
+
+navItems.forEach(b => b.addEventListener('click', () => show(+b.dataset.slide)));
+document.getElementById('prev').addEventListener('click', () => show(current - 1));
+document.getElementById('next').addEventListener('click', () => show(current + 1));
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); show(current + 1); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); show(current - 1); }
+});
+
+show(0);
+</script>
+
+</body>
+</html>

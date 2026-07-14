@@ -1,0 +1,1030 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>PositionManager 設計レビュー — Issue #51</title>
+<style>
+  :root {
+    --bg: #f5f7fa;
+    --fg: #1a1a1a;
+    --muted: #6b7280;
+    --accent: #2563eb;
+    --accent2: #7c3aed;
+    --good: #059669;
+    --warn: #d97706;
+    --bad: #dc2626;
+    --card: #ffffff;
+    --border: #e5e7eb;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
+    background: var(--bg); color: var(--fg);
+    height: 100%;
+    overflow: hidden;
+  }
+  .deck {
+    position: relative;
+    width: 100vw; height: 100vh;
+  }
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 48px 80px 72px;
+    display: none;
+    flex-direction: column;
+    overflow-y: auto;
+    animation: fade .25s ease;
+  }
+  .slide.active { display: flex; }
+  @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+  h1 {
+    font-size: 44px; margin: 0 0 8px;
+    color: var(--accent);
+    font-weight: 800;
+    line-height: 1.25;
+  }
+  h2 {
+    font-size: 30px; margin: 0 0 20px;
+    font-weight: 700;
+    border-bottom: 3px solid var(--accent);
+    padding-bottom: 10px;
+    line-height: 1.3;
+  }
+  h3 {
+    font-size: 20px; margin: 20px 0 10px;
+    color: var(--accent2);
+    line-height: 1.4;
+  }
+  h4 {
+    font-size: 17px; margin: 14px 0 6px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  p, li { font-size: 17px; line-height: 1.8; }
+  .lead {
+    font-size: 20px;
+    color: var(--fg);
+    margin: 0 0 24px;
+    line-height: 1.7;
+  }
+  .sub {
+    font-size: 15px; color: var(--muted);
+    margin: 4px 0 12px;
+  }
+  ul { margin: 8px 0 16px; padding-left: 24px; }
+  li { margin: 6px 0; }
+  code, .code {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    background: #eef2ff; padding: 2px 6px; border-radius: 4px;
+    color: var(--accent); font-size: 0.92em;
+  }
+  .pill {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+    margin-right: 6px;
+  }
+  .pill-good { background: #d1fae5; color: var(--good); }
+  .pill-warn { background: #fef3c7; color: var(--warn); }
+  .pill-bad  { background: #fee2e2; color: var(--bad); }
+  .pill-muted { background: #f3f4f6; color: var(--muted); }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 24px;
+    margin: 10px 0;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .grid {
+    display: grid;
+    gap: 18px;
+    margin: 16px 0;
+  }
+  .grid-2 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .nav {
+    position: fixed;
+    bottom: 24px; right: 36px;
+    display: flex; align-items: center; gap: 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 8px 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    z-index: 10;
+  }
+  .nav button {
+    background: none; border: none;
+    font-size: 20px; cursor: pointer;
+    padding: 4px 8px;
+    color: var(--accent);
+  }
+  .nav button:disabled { color: var(--muted); cursor: not-allowed; }
+  .page { color: var(--muted); font-size: 14px; min-width: 60px; text-align: center; }
+  .tag { color: var(--muted); font-size: 14px; letter-spacing: 0.1em; }
+  .arrow { font-size: 28px; color: var(--accent); }
+  .flow {
+    display: flex; align-items: center; gap: 10px;
+    flex-wrap: wrap; justify-content: center;
+    margin: 20px 0;
+  }
+  .flow .box {
+    background: white;
+    border: 2px solid var(--accent);
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    min-width: 130px;
+    text-align: center;
+    font-size: 15px;
+  }
+  .flow .box.domain { border-color: var(--accent2); }
+  .flow .box.infra  { border-color: var(--good); }
+  .flow .box.port   { border-color: var(--warn); border-style: dashed; }
+  table {
+    border-collapse: collapse; width: 100%;
+    margin: 14px 0;
+    font-size: 16px;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 12px 14px; text-align: left;
+    vertical-align: top;
+    line-height: 1.6;
+  }
+  th { background: #f3f4f6; font-weight: 700; }
+  .strike { text-decoration: line-through; color: var(--muted); }
+  .callout {
+    background: #fef3c7;
+    border-left: 4px solid var(--warn);
+    padding: 14px 22px;
+    margin: 18px 0;
+    border-radius: 0 8px 8px 0;
+  }
+  .callout.good { background: #d1fae5; border-left-color: var(--good); }
+  .callout.bad  { background: #fee2e2; border-left-color: var(--bad); }
+  .callout.info { background: #dbeafe; border-left-color: var(--accent); }
+  .issue-tag {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 700;
+    margin-right: 6px;
+  }
+  .issue-tag.muted { background: var(--muted); }
+  .small { font-size: 15px; color: var(--muted); }
+  kbd {
+    background: #f3f4f6; border: 1px solid var(--border);
+    padding: 2px 6px; border-radius: 4px;
+    font-family: monospace; font-size: 0.9em;
+  }
+  .toc-group {
+    margin: 12px 0;
+    padding: 12px 20px;
+    background: var(--card);
+    border-radius: 8px;
+    border-left: 4px solid var(--accent);
+  }
+  .toc-group h4 { margin: 0 0 8px; color: var(--accent); font-size: 15px; }
+  .toc-group ol { margin: 0; padding-left: 22px; }
+  .toc-group li { font-size: 15px; line-height: 1.6; margin: 3px 0; }
+  .analogy {
+    background: #eef2ff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    margin: 10px 0;
+    font-size: 15px;
+    color: var(--accent);
+    font-style: italic;
+  }
+  pre {
+    background: #1e293b;
+    color: #e2e8f0;
+    padding: 14px 18px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 10px 0;
+  }
+  .term {
+    display: inline-block;
+    background: #fef9c3;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<!-- 1: Title -->
+<section class="slide active">
+  <div class="tag">Luchida — Issue #51 設計レビュー資料</div>
+  <h1 style="margin-top:40px; font-size:56px;">PositionManager + 動的ロット</h1>
+  <p class="lead" style="margin-top:16px;">
+    4つの戦略を同時に動かすための、<strong>発注コントロールセンター</strong>を新しく作る話。
+  </p>
+  <p class="lead" style="margin-top:0; color: var(--muted); font-size:18px;">
+    このスライドは Issue #51 の設計内容をレビューするための資料です。<br>
+    なるべく専門用語を避けて書いています。気になった所は止めて質問してください。
+  </p>
+  <div class="card" style="margin-top:32px;">
+    <strong>このレビューで見てほしいこと</strong>
+    <ul>
+      <li>今回やる範囲（スコープ）の線引きは妥当か</li>
+      <li>部品の名前や役割の分け方は自然か</li>
+      <li>将来の拡張（新戦略・高度な配分ロジック）に耐えられるか</li>
+      <li>抜け漏れている観点はないか</li>
+    </ul>
+  </div>
+  <p class="small" style="margin-top:auto;">矢印キー <kbd>←</kbd> <kbd>→</kbd> でスライド移動 ・ <kbd>j</kbd>/<kbd>k</kbd> でも可 ・ 上端に戻るには <kbd>Home</kbd></p>
+</section>
+
+<!-- 2: 目次 -->
+<section class="slide">
+  <h2>目次</h2>
+  <p class="lead">18 枚。大きく 5 ブロックに分かれています。</p>
+
+  <div class="grid grid-2">
+    <div class="toc-group">
+      <h4>1. 何をやるのか（ブロック A）</h4>
+      <ol>
+        <li>背景 — なぜ今やるか</li>
+        <li>スコープ — 今回作るもの / 作らないもの</li>
+        <li>全体像 — 層のどこに何を置くか</li>
+      </ol>
+    </div>
+    <div class="toc-group">
+      <h4>2. 中心の 3 つの部品（ブロック B）</h4>
+      <ol start="4">
+        <li>PositionManager / AllocationPolicy / LotAllocation</li>
+        <li>StrategyWeight をやめた理由</li>
+        <li>初期実装は「均等配分」から始める</li>
+      </ol>
+    </div>
+    <div class="toc-group">
+      <h4>3. ロット計算の設計（ブロック C）</h4>
+      <ol start="7">
+        <li>CAPITAL を予備値に変える理由</li>
+        <li>最初の 4 案を全部却下した話（案 E 採用）</li>
+        <li>部品の名前を整理した話</li>
+        <li>値オブジェクトを整備する話</li>
+      </ol>
+    </div>
+    <div class="toc-group">
+      <h4>4. 細かい部品と流れ（ブロック D）</h4>
+      <ol start="11">
+        <li>EntryQueue（発注の信号機）</li>
+        <li>複数ポジションの扱いかた</li>
+        <li>エントリー全体の流れ</li>
+        <li>TradingGuard（将来の監視役）との境界</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="toc-group">
+    <h4>5. 振り返りとレビュー（ブロック E）</h4>
+    <ol start="15">
+      <li>派生した別 issue の一覧</li>
+      <li>レビューで見てほしい観点まとめ</li>
+    </ol>
+  </div>
+</section>
+
+<!-- 3: 背景 -->
+<section class="slide">
+  <h2>背景 — なぜ今やるか</h2>
+  <p class="lead">今のシステムは「1 つの戦略だけ動く」ように作られています。4 戦略を同時に動かすには、中心に<strong>司令塔</strong>を置く必要があります。</p>
+
+  <div class="grid grid-2">
+    <div class="card" style="border-left:4px solid var(--bad);">
+      <h3>🔴 今の状態</h3>
+      <ul>
+        <li><strong>SMA クロス戦略だけ</strong>が動いている</li>
+        <li>同じ通貨ペアでは<strong>ポジションは 1 つまで</strong>しか持てない</li>
+        <li>ロットを計算する時の「元手」は <code>CAPITAL</code> 環境変数で<strong>固定値</strong>（例: 10 万円）として使っている</li>
+        <li>戦略が 1 つなので、複数シグナルの調整ロジックは不要だった</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left:4px solid var(--good);">
+      <h3>🟢 これからやりたいこと</h3>
+      <ul>
+        <li><strong>4 つの戦略</strong>が同時に動く（SMA クロス / RSI 逆張り / SMA 乖離 / ヒゲ）</li>
+        <li>戦略ごとに<strong>別々のポジション</strong>を持てる</li>
+        <li>ロットは<strong>実際の口座残高</strong>を見て動的に決める</li>
+        <li>複数戦略が同時にシグナルを出したときに、まとめて賢く捌く司令塔を置く</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout info">
+    👉 この「司令塔」が今回作る <span class="term">PositionManager</span>。<br>
+    「どの戦略が」「どの順で」「どれくらいのロットで」発注するかを決めてくれる中心部品です。
+  </div>
+
+  <p class="small">※ 新しい戦略そのもの（RSI 逆張り等）の実装は今回は含みません。PositionManager の「受け口」だけ作って、戦略が揃った時にはめ込めるようにするのが狙いです。</p>
+</section>
+
+<!-- 4: スコープ -->
+<section class="slide">
+  <h2>スコープ — 今回作るもの / 作らないもの</h2>
+  <p class="lead">線引きは重要。大きく広げすぎず、かといって必要なものを削りすぎない範囲にしています。</p>
+
+  <div class="grid grid-2">
+    <div class="card" style="border-left:4px solid var(--good);">
+      <h3>✅ 今回作る</h3>
+      <ul>
+        <li><strong>司令塔</strong>: <code>PositionManager</code></li>
+        <li><strong>配分を決める頭脳 + 配分結果の箱</strong>: <code>AllocationPolicy</code> + <code>LotAllocation</code></li>
+        <li><strong>初期の配分ロジック</strong>: 均等配分 (<code>EqualWeightAllocationPolicy</code>)</li>
+        <li><strong>ロット計算の組み立て係</strong>: <code>PositionSizingService</code></li>
+        <li><strong>ロット計算ロジック本体</strong>: <code>MaintenanceRatioBasedLotPolicy</code></li>
+        <li><strong>残高取得の窓口と実装</strong>: <code>BalancePort</code> / <code>GmoBalanceAdapter</code></li>
+        <li><strong>発注の信号機</strong>: <code>EntryQueue</code></li>
+        <li><strong>意味を持ったデータの箱</strong>（値オブジェクト）: Balance / Money / Rate / etc.</li>
+        <li>CAPITAL を「API 失敗時の予備残高」に役割変更</li>
+        <li>同じ通貨ペアでも戦略ごとに 1 ポジション持てる構造</li>
+        <li>他ポジションが使ってる証拠金を引いた「利用可能残高」の考慮</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left:4px solid var(--bad);">
+      <h3>❌ 今回は作らない（別 issue に分離）</h3>
+      <ul>
+        <li>新しい戦略の実装<br>
+          <span class="small">→ #47 #48 #49 #50（RSI / SMA 乖離 / ヒゲ など）</span></li>
+        <li>4 戦略を同時に動かして 48 時間安定稼働を検証する<br>
+          <span class="small">→ #55</span></li>
+        <li>残高推移のグラフ化と「最大どれだけ減ったか」の可視化<br>
+          <span class="small">→ <span class="issue-tag">#119</span></span></li>
+        <li>「A+B なら 7:3」のような固定配分、「A 保有中は B 半減」のような抑制ルール<br>
+          <span class="small">→ <span class="issue-tag">#120</span></span></li>
+        <li>リスクや相関を考慮した高度な配分ロジック<br>
+          <span class="small">→ <span class="issue-tag">#121</span></span></li>
+        <li>相場が荒れた時にロットを減らす仕組み<br>
+          <span class="small">→ <span class="issue-tag">#122</span></span></li>
+        <li>ロット上限ガード（複利で暴走しないように）<br>
+          <span class="small">→ <span class="issue-tag">#124</span></span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 5: 全体像 -->
+<section class="slide">
+  <h2>全体像 — 層のどこに何を置くか</h2>
+  <p class="lead">Luchida は「Clean Architecture」と呼ばれる構造でできています。役割ごとにフォルダ（層）を分けて、互いの依存方向を制御します。</p>
+
+  <div class="card">
+    <h3>層ごとの性格（超ざっくり）</h3>
+    <ul>
+      <li><strong>domain（ドメイン）</strong> — ビジネスの計算と判断だけ。外の世界（DB・API）を一切知らない</li>
+      <li><strong>application / action</strong> — 「ユースケース」の組み立て役。domain を呼んで処理を繋げる</li>
+      <li><strong>port</strong> — 外とのやり取りの「受け口」の定義（抽象インターフェース）</li>
+      <li><strong>infrastructure / adapter</strong> — 実際に DB や API を叩く実装</li>
+    </ul>
+  </div>
+
+  <h3>今回、各層に追加・変更するもの</h3>
+  <table>
+    <tr><th style="width:22%">層</th><th>追加するもの</th></tr>
+    <tr>
+      <td><span class="pill pill-muted">domain</span></td>
+      <td>
+        <strong>ロジック</strong>: <code>LotPolicy</code> interface / <code>MaintenanceRatioBasedLotPolicy</code> 実装 / <code>AllocationPolicy</code> interface / <code>EqualWeightAllocationPolicy</code> 実装<br>
+        <strong>データの箱</strong>: <code>LotAllocation</code>, <code>Ratio</code>, <code>Balance</code>, <code>Money</code>, <code>Rate</code>, <code>MaintenanceRatio</code>, <code>MarginRate</code>, <code>LotDecisionInput</code>, <code>AllocationContext</code>
+      </td>
+    </tr>
+    <tr>
+      <td><span class="pill" style="background:#dbeafe;color:var(--accent);">application</span></td>
+      <td>
+        <code>PositionManager</code>（司令塔） / <code>PositionSizingService</code>（ロット計算の組み立て）/ <code>EntryQueue</code>（発注の順番制御）
+      </td>
+    </tr>
+    <tr>
+      <td><span class="pill" style="background:#fef3c7;color:var(--warn);">port</span></td>
+      <td>
+        <code>BalancePort</code> — メソッド 2 つ:<br>
+        ・<code>current()</code> は残高を返す（5 秒キャッシュ可。失敗時は null）<br>
+        ・<code>freshNow()</code> は発注直前用。キャッシュを無視して最新を取得
+      </td>
+    </tr>
+    <tr>
+      <td><span class="pill pill-good">infrastructure</span></td>
+      <td>
+        <code>GmoBalanceAdapter</code> — 実際に GMO API を叩く。内部で 5 秒のキャッシュを持ち、API 失敗時は CAPITAL を返す
+      </td>
+    </tr>
+  </table>
+</section>
+
+<!-- 6: 核となる3つの概念 -->
+<section class="slide">
+  <h2>中心の 3 つの部品</h2>
+  <p class="lead">この 3 つが今回の主役。それぞれの役割を比喩つきで説明します。</p>
+
+  <div class="grid grid-3">
+    <div class="card">
+      <h3>🎯 PositionManager</h3>
+      <p class="sub">application 層 / 今回新しく作る</p>
+      <p>複数の戦略（Rule）が「買いたい」「売りたい」と報告してくる。それを取りまとめて、<strong>誰がいくらずつ買うか</strong>を決めて、順番に発注する役目。</p>
+      <div class="analogy">🏗️ 比喩: <strong>現場監督</strong>。複数の作業員の声をまとめて、今日の分担を決める。</div>
+    </div>
+
+    <div class="card">
+      <h3>⚖️ AllocationPolicy</h3>
+      <p class="sub">domain 層 / ドメインサービス（ロジックの固まり）</p>
+      <p>「今どの戦略が反応していて」「いくらポジションを持っていて」「残高はいくら」から、戦略ごとの<strong>配分比率</strong>を決めるロジック。</p>
+      <p class="sub">interface なので実装を差し替え可能。初期実装は<strong>均等配分</strong>（全戦略に同じ比率）。</p>
+      <div class="analogy">🍕 比喩: <strong>ピザを切り分けるルール</strong>。ルールは差し替え可能（4 等分 / 差をつける / etc.）。</div>
+    </div>
+
+    <div class="card">
+      <h3>📦 LotAllocation</h3>
+      <p class="sub">domain 層 / 値オブジェクト（データの箱）</p>
+      <p>AllocationPolicy の<strong>計算結果</strong>。「A: 0.7、B: 0.3」のような比率の組み合わせを表す不変のデータ。</p>
+      <p class="sub">内部で「合計は必ず 1.0」というルールを守る。</p>
+      <div class="analogy">🍕 比喩: <strong>切り分けられた後のピザ</strong>。数字の組み合わせ。それ以上でもそれ以下でもない。</div>
+    </div>
+  </div>
+
+  <div class="callout good">
+    <strong>重要なポイント</strong>: 「配分を<em>決める</em>ロジック (Policy)」と、「配分の<em>結果</em>のデータ (Allocation)」を分けている。<br>
+    この分離がこの設計の要です。次のスライドでもう少し詳しく説明します。
+  </div>
+</section>
+
+<!-- 7: StrategyWeight 廃止 -->
+<section class="slide">
+  <h2>StrategyWeight をやめた理由</h2>
+  <p class="lead">最初は <code class="strike">StrategyWeight</code>（戦略の重み）という <strong>1 つの名前</strong>で扱おうとしていました。DDD レビューで「中身が混ざってる」と指摘され、2 つに分けました。</p>
+
+  <div class="grid grid-2">
+    <div class="card" style="border-left:4px solid var(--bad);">
+      <h3>❌ Before: StrategyWeight 1 個で扱う</h3>
+      <ul>
+        <li>「戦略の重み」という曖昧な概念</li>
+        <li><strong>数字の箱</strong>（比率 0.7）と<strong>ロジック</strong>（その比率の決め方）が 1 つのクラスに同居</li>
+        <li>状態依存のロジック（例:「A 保有中なら B を半減」）を足そうとすると、データの箱の中に外部状態が漏れて汚くなる</li>
+        <li>配分ロジックだけ差し替えたくても、データの箱ごと触ることになる</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left:4px solid var(--good);">
+      <h3>✅ After: 2 つに分ける</h3>
+      <ul>
+        <li><code>LotAllocation</code> = 計算結果の<strong>データ</strong>（不変・副作用なし）</li>
+        <li><code>AllocationPolicy</code> = 計算する<strong>ロジック</strong>（interface で差し替え可能）</li>
+        <li>ロジックを変えたいときは Policy の実装を差し替えるだけ。LotAllocation は触らない</li>
+        <li>将来 ML ベース / ConvictionScore ベースなど新しい実装が来ても同じ枠で扱える</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout info">
+    <strong>増田亨ペルソナからの指摘（意訳）</strong>:<br>
+    「<span class="term">値オブジェクト</span>は属性値だけで同一性が決まる不変の塊。外部状態（他のポジションを保有中かどうか等）を参照した瞬間にそれは値ではない」<br>
+    → だから、値（データ）とロジック（判断）を分けよう、という話。
+  </div>
+
+  <p class="sub">※ <span class="term">値オブジェクト</span> とは: ただの数値ではなく、意味と制約を持ったデータの箱。例えば Balance は「負になれない」「通貨単位を持つ」といった制約を内部に持っている。</p>
+</section>
+
+<!-- 8: 等ウェイト -->
+<section class="slide">
+  <h2>初期実装は「均等配分」から始める</h2>
+  <p class="lead">ユーザーから「A+B なら 7:3、A+B+F なら 1:4:5」という具体的な配分要望がありましたが、金融アナリストのレビューで<strong>筋が悪い</strong>と判定されました。</p>
+
+  <div class="grid grid-2">
+    <div class="card" style="border-left:4px solid var(--bad);">
+      <h3>固定比率の問題点</h3>
+      <ul>
+        <li>「7:3 にする根拠は何?」と問われたときに答えが難しい。大抵は<strong>感覚値</strong>になる</li>
+        <li>SMA クロス / RSI / SMA 乖離 / ヒゲ は全部<strong>同じ通貨ペアの短い時間足</strong>で動くので、値動きが似ている。特に逆張り 3 兄弟はほぼ同じ場面で反応する</li>
+        <li>組み合わせの数が爆発する（4 戦略で 15 通り、5 戦略で 31 通り、すべての設定を用意するのは非現実的）</li>
+        <li>「A 保有中は B 半減」のような離散的なルールは、<strong>過去データに合わせすぎ</strong>（カーブフィット）の温床になりやすい</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left:4px solid var(--good);">
+      <h3>均等配分の根拠</h3>
+      <ul>
+        <li>「<strong>情報がないときの最善手</strong>」として認められている方法（DeMiguel et al., 2009 の有名な論文）</li>
+        <li>実装がシンプルで、説明しやすく、バグも少ない</li>
+        <li>後で複雑な配分ロジックを入れたくなっても、<code>AllocationPolicy</code> の実装を差し替えるだけ。既存の呼び出し側を変えなくていい</li>
+        <li>将来的には「リスクパリティ」「ConvictionScore 重み付け」などに置き換える想定</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout">
+    <strong>スタート地点は単純さ優先</strong>。複雑な配分ルールは本当に効果があるか分からないまま複雑化させず、まずはデータを取りながら少しずつ洗練させる方針です。
+  </div>
+
+  <p class="sub">※ 組み合わせベース・相関補正・リスク予算ベースの実装は別 issue（<span class="issue-tag">#120</span> / <span class="issue-tag">#121</span>）に切り出しています。</p>
+</section>
+
+<!-- 9: CAPITAL 役割変更 -->
+<section class="slide">
+  <h2>CAPITAL を予備値に変える理由</h2>
+  <p class="lead">今のロット計算は「<strong>口座は 10 万円あるつもり</strong>」で動いています。実残高と離れていく一方です。これを直します。</p>
+
+  <h3>今のコード（簡略化）</h3>
+  <pre>const CAPITAL = 100000;  // 起動時に 10 万円と決め打ち
+const lotPolicy = new MarginBasedLotPolicy(
+  () =&gt; CAPITAL,     // ← いつも 10 万円を返す固定関数
+  ...
+);</pre>
+
+  <h3>これの何が問題か</h3>
+  <table>
+    <tr><th>実際の残高</th><th>CAPITAL 固定値</th><th>ロット計算に使う値</th><th>起きる問題</th></tr>
+    <tr>
+      <td>10 万円（そのまま）</td><td>10 万円</td><td>10 万円</td><td>問題なし</td>
+    </tr>
+    <tr style="background:#fff7ed;">
+      <td>7 万円（損失で減った）</td><td>10 万円</td><td>10 万円</td>
+      <td>実残高より大きいロットで発注 → 設計より<strong>大きなリスク</strong></td>
+    </tr>
+    <tr style="background:#f0f9ff;">
+      <td>13 万円（利益で増えた）</td><td>10 万円</td><td>10 万円</td>
+      <td>ロットが増えない → <strong>複利効果ゼロ</strong></td>
+    </tr>
+  </table>
+
+  <div class="callout bad">
+    <strong>特に危険なのは損失局面</strong>。<br>
+    残高 7 万円なのに 10 万円前提で維持率 140% を狙ってロットを出すと、実際の維持率は 98% 程度になり、<strong>GMO 側の強制決済ライン（100%）を割る</strong>可能性があります。
+  </div>
+
+  <h3>目指す状態</h3>
+  <ul>
+    <li>毎回のロット計算で、その時点の口座残高を GMO API から取得して使う</li>
+    <li>API が失敗したとき（メンテナンス・通信障害など）のみ、予備値として CAPITAL を使う</li>
+    <li>つまり CAPITAL は「<strong>滅多に使わない非常用の値</strong>」になる</li>
+  </ul>
+</section>
+
+<!-- 10: 案E構造 -->
+<section class="slide">
+  <h2>最初の 4 案を全部却下して案 E を採用した話</h2>
+  <p class="lead">残高取得をコードのどこに置くか、最初は 4 案考えました。DDD レビューで<strong>全部却下</strong>され、案 E（5 番目）が採用されました。</p>
+
+  <table>
+    <tr><th>案</th><th>やりかた</th><th>却下された理由</th></tr>
+    <tr><td>A</td>
+      <td>残高を返す関数をひそかに注入</td>
+      <td>関数の名前は <code>getCapitalJpy</code>（元手を返す）なのに中身は残高を取得。<strong>名前が嘘をついている</strong>。読んだ人が必ず誤解する</td></tr>
+    <tr><td>B</td>
+      <td>ロット計算クラスに残高取得を統合</td>
+      <td>ロジックと I/O（外部との通信）が混ざる → テストできない・再利用できない</td></tr>
+    <tr><td>C</td>
+      <td>domain 層から直接 BalanceCache を参照</td>
+      <td>domain が infrastructure を知ってしまう → <strong>Clean Architecture 違反</strong>。層の分離が崩れる</td></tr>
+    <tr><td>D</td>
+      <td>LotPolicy の calculateLot 引数に残高を追加</td>
+      <td>方向性は正しいが、引数が今後増える度にシグネチャが変わる。複数の値は<strong>パラメータの束</strong>で受けるべき</td></tr>
+    <tr style="background:#d1fae5;">
+      <td><strong>E（採用）</strong></td>
+      <td>LotPolicy は純粋ドメインサービスに戻し、application 層に<strong>組み立て役</strong>を新設</td>
+      <td>責務がきれいに分かれる。テストしやすい。将来の拡張に耐える</td>
+    </tr>
+  </table>
+
+  <h3>案 E の構造</h3>
+  <div class="flow">
+    <div class="box">main.ts<br><span class="small">CAPITAL → Balance</span></div>
+    <div class="arrow">→</div>
+    <div class="box">PositionSizingService<br><span class="small">(application)</span></div>
+    <div class="arrow">→</div>
+    <div class="box domain">LotPolicy<br><span class="small">(domain 純粋計算)</span></div>
+    <div class="arrow">→</div>
+    <div class="box">Lot</div>
+  </div>
+
+  <pre>class PositionSizingService {
+  execute(pair) {
+    // ① 残高取得（失敗したら予備の Balance を使う）
+    const balance = this.balancePort.current() ?? this.fallbackBalance;
+    // ② レート取得
+    const rate = this.ratePort.currentOf(pair);
+    // ③ 必要な値を束ねて LotPolicy に渡す（純粋計算）
+    return this.lotPolicy.decide(
+      new LotDecisionInput(pair, balance, rate, MaintenanceRatio.of(1.4))
+    );
+  }
+}</pre>
+  <p class="sub">CAPITAL は main.ts で <code>Balance.of(Money.jpy(CAPITAL))</code> のようにデータの箱に包んで、PositionSizingService のコンストラクタに「予備残高」として注入します。</p>
+</section>
+
+<!-- 11: 命名整理 -->
+<section class="slide">
+  <h2>部品の名前を整理した話</h2>
+  <p class="lead">名前は<strong>ユビキタス言語</strong>（チームで共通の言葉）。読んだ人が誤解しないよう、今回 3 つをリネームしました。</p>
+
+  <table>
+    <tr><th>変更前</th><th>変更後</th><th>理由</th></tr>
+    <tr>
+      <td><code class="strike">DynamicLotCalculator</code></td>
+      <td><code>PositionSizingService</code></td>
+      <td>
+        「Dynamic（動的）」は実装上の都合で、使う人から見たら「普通」のこと。わざわざ付ける必要がない。<br>
+        「Calculator（電卓）」は軽く聞こえる。FX 業界では <strong>"Position Sizing"</strong>（ポジションサイズをどう決めるかの判断）という言葉が定着しているので、そっちに合わせた。
+      </td>
+    </tr>
+    <tr>
+      <td><code class="strike">MarginBasedLotPolicy</code></td>
+      <td><code>MaintenanceRatioBasedLotPolicy</code></td>
+      <td>
+        「Margin（証拠金）ベース」だと範囲が広い。実態は「<strong>維持率が目標 140% になるよう決める</strong>」ロジックなので、名前で意図がわかるようにした。
+      </td>
+    </tr>
+    <tr>
+      <td><code class="strike">BalanceCache</code></td>
+      <td><code>GmoBalanceAdapter</code></td>
+      <td>
+        「Cache（キャッシュ）」は実装手段を名前に出してしまっている。<strong>役割は「GMO から残高を取る窓口」</strong>なので、Adapter（つなぐ部品）と呼ぶ方が自然。キャッシュはその中の実装詳細。
+      </td>
+    </tr>
+    <tr>
+      <td><code class="strike">StrategyWeight</code></td>
+      <td><code>LotAllocation</code> + <code>AllocationPolicy</code></td>
+      <td>
+        前のスライドで説明した通り、値（比率データ）と判断（決めるロジック）を分けた結果、名前も 2 つに分かれた。
+      </td>
+    </tr>
+  </table>
+
+  <div class="callout good">
+    命名は「<strong>将来コードを読む人（他人でも 3 ヶ月後の自分でも）</strong>」のために選ぶ。名前で役割が伝わるなら、コメントを書かずに済む。
+  </div>
+</section>
+
+<!-- 12: 値オブジェクト整備 -->
+<section class="slide">
+  <h2>値オブジェクトを整備する話</h2>
+  <p class="lead">このプロジェクトでは「domain 層に <code>number</code> 型を置かない」という方針があります。今回それを本気で徹底します。</p>
+
+  <div class="card">
+    <h3>値オブジェクトって何?</h3>
+    <p>ただの数値ではなく、<strong>意味とルールを内側に持ったデータの箱</strong>。</p>
+    <ul>
+      <li>例: <code>Balance</code>（残高）は「負になれない」というルールを内側に持つ</li>
+      <li>例: <code>Ratio</code>（比率）は「0 から 1 の範囲」</li>
+      <li>例: <code>MaintenanceRatio</code>（維持率）は「1.0 より大きい」</li>
+    </ul>
+    <p>数値（number）で扱っていると、うっかり負の残高や範囲外の比率をコードに渡してしまう。それを<strong>値オブジェクト自身が防ぐ</strong>のがポイント。</p>
+  </div>
+
+  <h3>今回追加する値オブジェクト一覧</h3>
+  <table>
+    <tr><th>名前</th><th>役割・内部ルール</th></tr>
+    <tr><td><code>Balance</code></td><td>口座残高。非負。内部に <code>Money</code> を持つ</td></tr>
+    <tr><td><code>Money</code></td><td>金額と通貨のセット。数値と単位を分離</td></tr>
+    <tr><td><code>Currency</code></td><td>JPY / USD などの通貨種別</td></tr>
+    <tr><td><code>Rate</code></td><td>レート。<strong>null を返さない</strong>（取得失敗は例外にして発注を中止）</td></tr>
+    <tr><td><code>MaintenanceRatio</code></td><td>維持率の目標値（例: 1.4 = 140%）。1.0 より大きい必要あり</td></tr>
+    <tr><td><code>MarginRate</code></td><td>証拠金率（例: 0.04 = レバレッジ 25 倍）。(0, 1) の範囲</td></tr>
+    <tr><td><code>Ratio</code></td><td>0〜1 の比率。<code>LotAllocation</code> の内部で使う</td></tr>
+    <tr><td><code>LotDecisionInput</code></td><td>LotPolicy 呼び出し時の引数をまとめた箱（パラメータオブジェクト）</td></tr>
+    <tr><td><code>LotAllocation</code></td><td>配分結果。合計 = 1.0 のルール。Map を外に出さず <code>ratioOf(s)</code> で問い合わせる</td></tr>
+  </table>
+
+  <p class="sub">👉 現状 <code>number</code> で引き回している変数は、このリファクタですべて値オブジェクトに置き換えます。既存テストも書き直し。</p>
+</section>
+
+<!-- 13: EntryQueue -->
+<section class="slide">
+  <h2>EntryQueue（発注の信号機）</h2>
+  <p class="lead">GMO FX の API には「<strong>発注は 1 秒に 1 件まで</strong>」という制限があります。4 戦略が同時に発注したいと言ってきた時、この制限を守る仕組みが必要です。</p>
+
+  <div class="analogy">
+    🚦 比喩: <strong>コンビニのレジ</strong>。複数のお客さんが一斉に来ても、レジは 1 人 1 人順番に対応する。
+  </div>
+
+  <h3>設計方針</h3>
+  <table>
+    <tr><th>論点</th><th>決めたこと</th><th>理由</th></tr>
+    <tr>
+      <td>どこに置く?</td>
+      <td>application 層の独立した部品</td>
+      <td>単独でテストできる。責任は<strong>順序保証 + 鮮度管理（3 秒 TTL）</strong>のみ（POST 発注間隔は <code>GmoRestClient.throttlePost</code> に委譲）。将来 PositionManager 以外からも使えるように</td>
+    </tr>
+    <tr>
+      <td>古いシグナルの扱い</td>
+      <td>3 秒経ったら<strong>破棄</strong>する</td>
+      <td>FX は価格の動きが速い。5 秒前のシグナルで古い価格に発注するのは損する行為なので捨てる方がマシ</td>
+    </tr>
+    <tr>
+      <td>1 秒 1 件制限</td>
+      <td><code>GmoRestClient.throttlePost</code> 側で待機（EntryQueue は責務外）</td>
+      <td>POST レート制御は HTTP クライアントに集約（責務分離）。EntryQueue は「順番に渡す」だけ</td>
+    </tr>
+  </table>
+
+  <h3>動きのイメージ</h3>
+  <div class="flow">
+    <div class="box">戦略 A (t=0s) シグナル</div>
+    <div class="arrow">→</div>
+    <div class="box">Queue</div>
+    <div class="arrow">即発注</div>
+    <div class="box">EntryExecution</div>
+  </div>
+  <div class="flow">
+    <div class="box">戦略 B (t=0s) シグナル</div>
+    <div class="arrow">→</div>
+    <div class="box">Queue (待機)</div>
+    <div class="arrow">1 秒後</div>
+    <div class="box">EntryExecution</div>
+  </div>
+  <div class="flow">
+    <div class="box" style="border-color:var(--bad);">戦略 C (4 秒後に破棄)</div>
+    <div class="arrow" style="color:var(--bad);">🗑️</div>
+    <div class="box" style="border-color:var(--muted);color:var(--muted);">破棄（鮮度切れ）</div>
+  </div>
+</section>
+
+<!-- 14: 複数ポジション -->
+<section class="slide">
+  <h2>複数ポジションの扱いかた</h2>
+  <p class="lead">今は「同じ通貨ペアでポジションは 1 つまで」という制約があります。4 戦略同時稼働のために、「<strong>戦略ごとに 1 つまで</strong>」に緩和します。</p>
+
+  <h3>決めたこと</h3>
+  <p>DB のテーブル <code>positions</code> に、「<strong>通貨ペア × 戦略名</strong> の組で OPEN 状態のレコードは 1 つまで」という制約を追加する。</p>
+
+  <div class="grid grid-2">
+    <div class="card" style="border-left:4px solid var(--good);">
+      <h3>✅ 許可するケース</h3>
+      <ul>
+        <li>USD/JPY × SMAクロス = 1 件 OPEN</li>
+        <li>USD/JPY × RSI 逆張り = 1 件 OPEN<br>
+          <span class="small">（SMAクロスと同時に存在しても OK）</span></li>
+        <li>CLOSED（決済済み）のポジションは<strong>何件あっても OK</strong></li>
+      </ul>
+    </div>
+    <div class="card" style="border-left:4px solid var(--bad);">
+      <h3>❌ 禁止するケース</h3>
+      <ul>
+        <li>USD/JPY × SMAクロス = 2 件 OPEN<br>
+          <span class="small">（同戦略で複数持つのは禁止）</span></li>
+      </ul>
+      <p class="sub">将来「同戦略でドテン（途転）を許したい」等があれば、その時に制約を緩めればいい。</p>
+    </div>
+  </div>
+
+  <div class="callout info">
+    <strong>設計の原則</strong>: 制約は<strong>最初に厳しく、必要に応じて緩める</strong>のが安全。逆（緩いところから厳しく）は既存データとの整合性で詰みやすい。
+  </div>
+
+  <h3>技術的な実装</h3>
+  <pre>-- PostgreSQL の「部分ユニークインデックス」
+CREATE UNIQUE INDEX idx_positions_open_unique
+  ON positions (pair, strategy_name)
+  WHERE status = 'OPEN';</pre>
+  <p class="sub">ExitRule（決済ルール）の評価ループも「<code>pair, strategy_name</code> でポジションを引いて戦略ごとに評価」する形に変わります。</p>
+</section>
+
+<!-- 15: エントリーフロー全体像 -->
+<section class="slide">
+  <h2>エントリー全体の流れ</h2>
+  <p class="lead">ここまでの部品が、実際にどう連携するのか。15 分足が確定した瞬間から発注までの流れを追います。</p>
+
+  <div class="card">
+    <ol style="font-size:17px;">
+      <li><strong>15 分足が確定</strong> → <code>TradingSession</code> が登録されている各 <code>EntryRule</code> に「シグナルある?」と順番に聞く</li>
+      <li>「あり」と返した Rule たちを <code>PositionManager</code> が取りまとめる（検知シグナル集合 + 今持ってるポジション + 現在残高もセットで）</li>
+      <li><code>PositionManager</code> が <code>AllocationPolicy.decide()</code> を呼ぶ<br>
+        <span class="small">→ 初期実装は均等配分。戦略数で分ける</span></li>
+      <li>返ってきた <code>LotAllocation</code>（比率の箱）を使って、戦略ごとに <code>PositionSizingService.executeWithFresh(pair)</code> で <code>SizingResult</code>（lot, rate, requiredMargin）を取得<br>
+        <span class="small">→ 残高ベースで「配分比率 × 基準 Lot」を算出。発注直前の鮮度保証レートを使う</span></li>
+      <li>戦略ごとに <code>EntryCommand</code>（<code>requiredMargin</code> 込み）を組み立てて <code>EntryQueue.enqueue()</code> に投入</li>
+      <li><code>EntryQueue</code> が <code>EntryExecution</code> を呼ぶ。POST 1 秒 1 件の制限は <code>GmoRestClient.throttlePost</code> 側で守る<br>
+        <span class="small">→ 3 秒経った古いシグナルは破棄</span></li>
+      <li><code>EntryExecution</code> が <code>Broker.placeEntry()</code> で GMO API に発注 → 成功したら <code>PositionRepository.register()</code> で DB に保存</li>
+    </ol>
+  </div>
+
+  <h3>図で見るフロー</h3>
+  <div class="flow" style="font-size:13px;">
+    <div class="box">TradingSession</div>
+    <div class="arrow">→</div>
+    <div class="box">PositionManager</div>
+    <div class="arrow">→</div>
+    <div class="box domain">AllocationPolicy</div>
+    <div class="arrow">→</div>
+    <div class="box">PositionSizingService</div>
+    <div class="arrow">→</div>
+    <div class="box">EntryQueue</div>
+    <div class="arrow">→</div>
+    <div class="box">EntryExecution</div>
+    <div class="arrow">→</div>
+    <div class="box infra">Broker (GMO)</div>
+  </div>
+</section>
+
+<!-- 16: TradingGuard -->
+<section class="slide">
+  <h2>TradingGuard（将来の監視役）との境界</h2>
+  <p class="lead">将来 <span class="term">TradingGuard</span> という「取引の番人」を作る予定です。AllocationPolicy と責任が被らないよう、今のうちに線を引いておきます。</p>
+
+  <div class="card">
+    <h3>TradingGuard って何?</h3>
+    <ul>
+      <li>経済指標発表中、API メンテ中、異常検知時などに<strong>全戦略を止める</strong></li>
+      <li>月利 20% 到達で「慎重モード」に切り替えるなど、<strong>経営判断の番人</strong></li>
+      <li>他の判断（AllocationPolicy 等）を握りつぶせる<strong>最大権力</strong>を持つ</li>
+    </ul>
+    <p>今回は実装しないが、将来確実に作る想定。</p>
+  </div>
+
+  <h3>なぜ今これを気にするのか?</h3>
+  <p>AllocationPolicy（配分ロジック）と TradingGuard（全停止役）は、将来どちらも「ある条件で発注を抑制する」という機能を持ちます。今のうちに責任範囲を分けておかないと、後で<strong>「どっちがやるの?」で揉める</strong>し、両方に同じロジックが書かれてしまう危険があります。</p>
+
+  <h3>引いた線</h3>
+  <table>
+    <tr><th></th><th>TradingGuard（将来）</th><th>AllocationPolicy（今回）</th></tr>
+    <tr>
+      <th>何のために?</th>
+      <td>市場環境起因の「全停止」</td>
+      <td>取引可能な状態の中で「配分調整」</td>
+    </tr>
+    <tr>
+      <th>きっかけ</th>
+      <td>経済指標・API メンテ・異常検知・月利 20% 到達など</td>
+      <td>検知されたシグナル集合 + 現ポジション + 残高</td>
+    </tr>
+    <tr>
+      <th>出すもの</th>
+      <td>「取引可能 / 不可」の 2 値 + 既存ポジションの強制決済指示</td>
+      <td><code>LotAllocation</code>（戦略ごとの配分比率）</td>
+    </tr>
+    <tr>
+      <th>権力の強さ</th>
+      <td>最大（他を握りつぶせる）</td>
+      <td>TradingGuard が許可した範囲内で調整するだけ</td>
+    </tr>
+  </table>
+
+  <div class="callout info">
+    <strong>将来「A 保有中は B を半減」のような抑制ルールを追加するとき</strong>:<br>
+    ・市場環境起因（日銀会合中は全停止 等）→ <strong>TradingGuard</strong><br>
+    ・戦略組合せ起因（A 保有中は B を半減 等）→ <strong>AllocationPolicy の SuppressionRule</strong>（別 issue <span class="issue-tag">#120</span>）
+  </div>
+</section>
+
+<!-- 17: 派生 issue -->
+<section class="slide">
+  <h2>派生した別 issue の一覧</h2>
+  <p class="lead">今回のレビューで「それは今回じゃない方がいい」と判断して分離したタスクです。すべて追跡できる形で issue 化済み。</p>
+
+  <table>
+    <tr><th>#</th><th>タイトル</th><th>切り出した理由</th></tr>
+    <tr>
+      <td><span class="issue-tag">#119</span></td>
+      <td>DD 可視化<br><span class="small">（残高推移と最大損失率のグラフ）</span></td>
+      <td>
+        PositionManager と役割が直交する<strong>観測・可視化</strong>の機能。<br>
+        BalanceCache が完成すれば上に載せられる。<br>
+        BT 側の <code>bt_runs</code> テーブルには DD メトリクスが既にあるので、本番側に移植するイメージ。
+      </td>
+    </tr>
+    <tr>
+      <td><span class="issue-tag">#120</span></td>
+      <td>固定比率 + 離散抑制ルール</td>
+      <td>
+        ユーザーが当初望んだ「A+B は 7:3」「A 保有中は B 半減」の実装。<br>
+        金融工学的にカーブフィット懸念があるので、<strong>均等配分の後で A/B 実験</strong>として試す位置付け。
+      </td>
+    </tr>
+    <tr>
+      <td><span class="issue-tag">#121</span></td>
+      <td>リスク予算ベースの配分</td>
+      <td>
+        戦略間相関・Kelly 分数・リスクパリティを組み合わせた動的配分。<br>
+        金融アナリストが「第 4 案」として推奨した高度な仕組み。ConvictionScore (#57) と組み合わせる。
+      </td>
+    </tr>
+    <tr>
+      <td><span class="issue-tag">#122</span></td>
+      <td>ボラティリティターゲティング</td>
+      <td>
+        相場が荒れてる時にロットを減らす仕組み。ATR（値動きの大きさの指標）を見て動的調整。<br>
+        MaintenanceRatio ベースだけだと急変時に対応できないので補強。
+      </td>
+    </tr>
+    <tr>
+      <td><span class="issue-tag">#124</span></td>
+      <td>LotCap（ロット上限ガード）</td>
+      <td>
+        口座残高がどんどん増えてもロットが暴走しない上限。<strong>複利加速の抑止</strong>。<br>
+        TradingGuard 領域と連動するので別設計。
+      </td>
+    </tr>
+  </table>
+</section>
+
+<!-- 18: レビュー観点 -->
+<section class="slide">
+  <h2>レビューで見てほしい観点まとめ</h2>
+  <p class="lead">承認する前に、次の 4 視点でざっと確認してください。</p>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <h3>🎯 スコープ</h3>
+      <ul>
+        <li>PositionManager + 周辺基盤に絞った判断は妥当か</li>
+        <li>DD 可視化・固定比率・リスク予算・LotCap を別 issue に分離した判断に違和感ないか</li>
+        <li>今回やらないことが明確になっているか</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>🏗 設計</h3>
+      <ul>
+        <li>LotAllocation（値）と AllocationPolicy（判断）の分離は自然か</li>
+        <li>案 E（LotPolicy 純粋 + PositionSizingService 組み立て）は読みやすい構造か</li>
+        <li>値オブジェクトとして用意した範囲は十分か</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>📛 命名</h3>
+      <ul>
+        <li>PositionSizingService / MaintenanceRatioBasedLotPolicy / GmoBalanceAdapter は読んで意図が分かる名前か</li>
+        <li>ユビキタス言語として違和感はないか</li>
+        <li>他の部分と一貫性があるか</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>🔮 拡張性</h3>
+      <ul>
+        <li>新しい戦略を追加するときに、設定ファイル変更だけで済むか</li>
+        <li>ConvictionScore (#57) 導入時に AllocationPolicy を差し替えるだけで済むか</li>
+        <li>TradingGuard 実装時に責務境界が保たれるか</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout good" style="margin-top:24px;">
+    気になる点・質問・懸念は自由に挙げてください。すべての決定事項は<br>
+    <code>docs/design/position-manager/brief.md</code><br>
+    に記録されています。レビューはこのスライドと brief.md を突き合わせる形が効率的です。
+  </div>
+</section>
+
+</div>
+
+<div class="nav">
+  <button id="prev">←</button>
+  <span class="page" id="page">1 / 18</span>
+  <button id="next">→</button>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+  const pageEl = document.getElementById('page');
+  const prevBtn = document.getElementById('prev');
+  const nextBtn = document.getElementById('next');
+
+  function render() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === current));
+    pageEl.textContent = `${current + 1} / ${total}`;
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === total - 1;
+    // update hash for deep-link
+    history.replaceState(null, '', '#' + (current + 1));
+  }
+
+  function go(delta) {
+    const next = current + delta;
+    if (next < 0 || next >= total) return;
+    current = next;
+    render();
+  }
+
+  prevBtn.addEventListener('click', () => go(-1));
+  nextBtn.addEventListener('click', () => go(1));
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'j' || e.key === ' ' || e.key === 'PageDown') go(1);
+    if (e.key === 'ArrowLeft'  || e.key === 'k' || e.key === 'PageUp') go(-1);
+    if (e.key === 'Home') { current = 0; render(); }
+    if (e.key === 'End')  { current = total - 1; render(); }
+  });
+
+  // initial deep-link
+  const h = parseInt(location.hash.replace('#', ''), 10);
+  if (!isNaN(h) && h >= 1 && h <= total) {
+    current = h - 1;
+  }
+  render();
+</script>
+</body>
+</html>

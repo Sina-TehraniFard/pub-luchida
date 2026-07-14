@@ -1,0 +1,136 @@
+<mxfile host="65bd71144e">
+    <diagram name="集約 VO（Issue #51 追加分）" id="pm-aggregation-vos">
+        <mxGraphModel dx="1460" dy="900" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="2000" pageHeight="1200" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="bg" value="" style="whiteSpace=wrap;html=1;fontColor=#333333;fillColor=#f5f5f5;strokeColor=#666666;labelBackgroundColor=#ffffff;" parent="1" vertex="1">
+                    <mxGeometry x="10" y="10" width="1980" height="1170" as="geometry"/>
+                </mxCell>
+                <mxCell id="title" value="PositionManager / domain層 — 集約 VO（Issue #51 設計フェーズ）" style="text;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="20" width="1400" height="36" as="geometry"/>
+                </mxCell>
+                <mxCell id="subtitle" value="基礎 VO を組み合わせた『結果』を束ねる VO 群。Map を API 境界に露出させない（憲法 6.10）" style="text;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=0;fontColor=#555555;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="56" width="1400" height="22" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="laneTop" value="集約 VO（生成: PositionSizingService / LotAllocation.apply / PositionManager）" style="shape=mxgraph.basic.rect;fillColor=#fce4d6;strokeColor=#e6873e;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=4;rounded=1;arcSize=4;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="100" width="1380" height="240" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="totalUnits" value="TotalUnits" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="135" width="300" height="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="totalUnitsContent" value="value: Big&#10;{value &gt;= 0、上限なし}&#10;{単位制約なし（100 倍数でなくてよい）}&#10;--&#10;+ of(value): TotalUnits&#10;+ zero(): TotalUnits&#10;+ fromLot(lot: Lot): TotalUnits&#10;+ plus(other): TotalUnits&#10;+ isExceedingSingleLotLimit(): bool&#10;+ toBig() / + equals" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=10;fontColor=#000000;" parent="totalUnits" vertex="1">
+                    <mxGeometry y="30" width="300" height="160" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="strategyLots" value="StrategyLots" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="380" y="135" width="320" height="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="strategyLotsContent" value="lots: Map&lt;StrategyNameValue, Lot&gt;&#10;{private 保持。生 Map は外に出さない}&#10;{Ratio.zero() 抑制された戦略は除外}&#10;--&#10;+ fromAllocation(ratios, baseLot): StrategyLots&#10;+ lotOf(strategy): Lot | null&#10;+ strategies(): StrategyName[]&#10;+ totalLot(): TotalUnits&#10;+ isEmpty(): bool" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=10;fontColor=#000000;" parent="strategyLots" vertex="1">
+                    <mxGeometry y="30" width="320" height="160" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="sizingResult" value="SizingResult" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="730" y="135" width="320" height="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="sizingResultContent" value="lot: Lot&#10;rate: Rate&#10;requiredMargin: Money&#10;{requiredMargin = rate × lot × marginRate}&#10;{rate を保持してレート二重取得を回避（NH-2）}&#10;--&#10;+ of(lot, rate, marginRate): SizingResult&#10;+ lot() / + rate() / + requiredMargin()" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=10;fontColor=#000000;" parent="sizingResult" vertex="1">
+                    <mxGeometry y="30" width="320" height="160" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="detectedSignals" value="DetectedSignals" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1080" y="135" width="310" height="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="detectedSignalsContent" value="strategies: StrategyName[]（薄ラッパ）&#10;{重複なし、評価順を保つ}&#10;--&#10;+ of(strategies): DetectedSignals&#10;+ empty(): DetectedSignals&#10;+ contains(s): bool&#10;+ size(): number / + isEmpty(): bool&#10;+ strategies(): StrategyName[]&#10;{戻り値は防御的コピー}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=10;fontColor=#000000;" parent="detectedSignals" vertex="1">
+                    <mxGeometry y="30" width="310" height="160" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="laneRefs" value="関連 VO（別図参照 / 参考）" style="shape=mxgraph.basic.rect;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=4;rounded=1;arcSize=4;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="380" width="1380" height="240" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="lotAllocationRef" value="LotAllocation&#10;（別図: allocation-policy.drawio）" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;fontColor=#555555;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="415" width="320" height="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="lotAllocationRefContent" value="ratios: Map&lt;StrategyNameValue, Ratio&gt;&#10;{合計 = 1.0、|sum-1| &lt;= Ratio.EPSILON}&#10;{全戦略抑制時は合計 0.0 を許容}&#10;--&#10;+ of(entries) / + suppressed(strategies)&#10;+ ratioOf(s) / + isSuppressed(s)&#10;+ isFullySuppressed(): bool&#10;+ apply(baseLot): StrategyLots&#10;+ strategies(): StrategyName[]" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#f5f5f5;strokeColor=none;fontSize=10;fontColor=#555555;" parent="lotAllocationRef" vertex="1">
+                    <mxGeometry y="40" width="320" height="150" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="lotRef" value="Lot（既存）" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;fontColor=#555555;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="400" y="415" width="280" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="lotRefContent" value="value: int&#10;{100〜500,000、100 の倍数}&#10;--&#10;+ of(value): Lot / + toNumber()" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#f5f5f5;strokeColor=none;fontSize=10;fontColor=#555555;" parent="lotRef" vertex="1">
+                    <mxGeometry y="30" width="280" height="70" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="rateRef" value="Rate（既存）" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;fontColor=#555555;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="400" y="525" width="280" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="rateRefContent" value="value, pair, capturedAt&#10;+ isFreshEnough(now, maxAgeMs)" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#f5f5f5;strokeColor=none;fontSize=10;fontColor=#555555;" parent="rateRef" vertex="1">
+                    <mxGeometry y="30" width="280" height="50" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="moneyRef" value="Money（既存）" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;fontColor=#555555;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="710" y="415" width="280" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="moneyRefContent" value="value: Big + currency: Currency&#10;+ jpy(v) / + plus / + minus / + times" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#f5f5f5;strokeColor=none;fontSize=10;fontColor=#555555;" parent="moneyRef" vertex="1">
+                    <mxGeometry y="30" width="280" height="50" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="strategyNameRef" value="StrategyName（既存）" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;fontColor=#555555;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="1020" y="415" width="320" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="strategyNameRefContent" value="value: StrategyNameValue&#10;{'SMA_CROSS' | 'RSI_REVERSAL'&#10; | 'SMA_DISTANCE' | 'WICK_REVERSAL'}&#10;{Map キーは .value で string 化（N-C1）}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#f5f5f5;strokeColor=none;fontSize=10;fontColor=#555555;" parent="strategyNameRef" vertex="1">
+                    <mxGeometry y="30" width="320" height="70" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="availableBalanceRef" value="AvailableBalance（将来 / P4）" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;fontColor=#555555;dashed=1;" parent="1" vertex="1">
+                    <mxGeometry x="1020" y="525" width="320" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="availableBalanceRefContent" value="{将来切り出し: 含み損益込み利用可能残高}&#10;{現状は Balance に統合（policies.md 1.6.1）}" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#f5f5f5;strokeColor=none;fontSize=10;fontColor=#555555;" parent="availableBalanceRef" vertex="1">
+                    <mxGeometry y="30" width="320" height="50" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="groupNotes" value="設計のポイント" style="shape=mxgraph.basic.rect;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=4;rounded=1;arcSize=4;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="660" width="1380" height="500" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="note1" value="TotalUnits は『合計』専用の VO&#10;&#10;・Lot は単一ポジション制約（100〜500,000、100 倍数）&#10;・TotalUnits は合計値専用（上限・倍数制約なし、非負のみ）&#10;・isExceedingSingleLotLimit() の内部で 500,000 と比較&#10;  → 外部に SINGLE_LOT_MAX 等の生定数を漏らさない&#10;&#10;失敗パターン: 4戦略 × 200,000 Lot = 800,000 を Lot.of に渡すと throw。&#10;合計値は必ず TotalUnits に入れる。" style="shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="700" width="650" height="200" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="note2" value="StrategyLots は『LotAllocation.apply の戻り型』&#10;&#10;・以前は Map&lt;StrategyName, Lot&gt; を直接返していた&#10;・→ 呼び出し側が for...of で順序依存ロジックを書ける&#10;・→ 設計憲法 6.10「キー順序非依存」が崩れる&#10;&#10;StrategyLots VO 経由にすることで:&#10;・lotOf(strategy) で個別問い合わせ&#10;・totalLot() で合計を TotalUnits 型として取得&#10;・生 Map は外に一切露出しない" style="shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="730" y="700" width="650" height="200" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="note3" value="SizingResult はレート二重取得を防ぐ（NH-2）&#10;&#10;・PositionSizingService.executeWithFresh(pair) で 1 回 RatePort.currentFresh を呼ぶ&#10;・取得した rate を SizingResult に閉じ込める&#10;・PositionManager は SizingResult.rate() を使い回し、再度 currentFresh を呼ばない&#10;&#10;requiredMargin = rate × lot × marginRate を生成時に計算しておくことで、&#10;EntryQueue.reservedMargin() は『保持済みの値を合算するだけの純関数』になる。" style="shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="920" width="650" height="220" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="note4" value="設計憲法（value-objects.md 6 章）と本図の対応&#10;&#10;・6.1 Big 徹底 → SizingResult.of の requiredMargin 計算は Big で完結&#10;・6.7 null 排除 → DetectedSignals.contains は bool、isEmpty で表現&#10;・6.10 Map 非露出 → StrategyLots / LotAllocation の API 設計の核心&#10;・6.5/6.6 Map キーは StrategyNameValue（N-C1）&#10;&#10;集約 VO は『結果の入れ物』。生成元のロジックは:&#10;・LotAllocation: AllocationPolicy.decide&#10;・StrategyLots: LotAllocation.apply(baseLot)&#10;・SizingResult: PositionSizingService.executeWithFresh(pair)&#10;・DetectedSignals: PositionManager の Detect 段" style="shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;" parent="1" vertex="1">
+                    <mxGeometry x="730" y="920" width="650" height="220" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="eAlloc_StratLots" value="apply(baseLot)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.3;entryY=1;entryDx=0;entryDy=0;" parent="1" source="lotAllocationRef" target="strategyLots" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eStratLots_Total" value="totalLot()" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="strategyLots" target="totalUnits" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eStratLots_Lot" value="lotOf returns" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#666666;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="strategyLots" target="lotRef" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eSizing_Rate" value="保持" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#666666;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="sizingResult" target="rateRef" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eSizing_Money" value="requiredMargin" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#666666;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.7;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="sizingResult" target="moneyRef" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eDetected_Strategy" value="strategies: StrategyName[]" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#666666;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="detectedSignals" target="strategyNameRef" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>クラス図を読むための補足資料 — PositionManager</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1a1a1a;
+    --muted: #6b7280;
+    --accent: #2563eb;
+    --accent2: #7c3aed;
+    --good: #059669;
+    --warn: #d97706;
+    --bad: #dc2626;
+    --surface: #f9fafb;
+    --border: #e5e7eb;
+    --sidebar: #f3f4f6;
+    --code-bg: #f3f4f6;
+    --highlight: #fef9c3;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  html, body {
+    margin: 0; padding: 0;
+    font-family: -apple-system, "Hiragino Sans", "Noto Sans JP", "Yu Gothic", sans-serif;
+    background: var(--bg); color: var(--fg);
+    line-height: 1.7;
+    font-size: 16px;
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    min-height: 100vh;
+  }
+  aside {
+    background: var(--sidebar);
+    border-right: 1px solid var(--border);
+    padding: 32px 20px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    font-size: 14px;
+  }
+  aside h3 {
+    margin: 0 0 12px;
+    color: var(--accent);
+    font-size: 15px;
+    letter-spacing: 0.05em;
+  }
+  aside ol {
+    list-style: none;
+    padding: 0; margin: 0 0 20px;
+    counter-reset: section;
+  }
+  aside ol li {
+    counter-increment: section;
+    margin: 0;
+    padding: 0;
+  }
+  aside ol li a {
+    display: block;
+    padding: 6px 10px;
+    color: var(--fg);
+    text-decoration: none;
+    border-left: 3px solid transparent;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  aside ol li a::before {
+    content: counter(section) ". ";
+    color: var(--muted);
+    font-weight: 600;
+    margin-right: 4px;
+  }
+  aside ol li a:hover {
+    background: white;
+    border-left-color: var(--accent);
+  }
+  aside ol.subsection {
+    padding-left: 16px;
+    counter-reset: sub;
+  }
+  aside ol.subsection li { counter-increment: sub; }
+  aside ol.subsection li a::before {
+    content: counter(section, lower-alpha) ". ";
+    color: var(--muted);
+  }
+  main {
+    padding: 48px 64px 120px;
+    max-width: 960px;
+  }
+  h1 {
+    font-size: 40px;
+    margin: 0 0 8px;
+    color: var(--accent);
+    font-weight: 800;
+  }
+  h2 {
+    font-size: 28px;
+    margin: 56px 0 20px;
+    border-bottom: 3px solid var(--accent);
+    padding-bottom: 10px;
+  }
+  h3 {
+    font-size: 22px;
+    margin: 36px 0 12px;
+    color: var(--accent2);
+  }
+  h4 {
+    font-size: 18px;
+    margin: 24px 0 8px;
+    color: var(--fg);
+  }
+  p { margin: 12px 0; }
+  .lead {
+    font-size: 18px;
+    color: var(--fg);
+    margin: 8px 0 24px;
+    line-height: 1.8;
+  }
+  code, .code {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--accent);
+    font-size: 0.92em;
+  }
+  pre {
+    background: #1e293b;
+    color: #e2e8f0;
+    padding: 16px 20px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 14px;
+    line-height: 1.6;
+    margin: 16px 0;
+  }
+  pre code {
+    background: transparent;
+    padding: 0;
+    color: inherit;
+  }
+  .callout {
+    background: #fef3c7;
+    border-left: 4px solid var(--warn);
+    padding: 14px 22px;
+    margin: 20px 0;
+    border-radius: 0 8px 8px 0;
+  }
+  .callout.good { background: #d1fae5; border-left-color: var(--good); }
+  .callout.bad  { background: #fee2e2; border-left-color: var(--bad); }
+  .callout.info { background: #dbeafe; border-left-color: var(--accent); }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 16px 0;
+    font-size: 15px;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 10px 14px;
+    text-align: left;
+    vertical-align: top;
+    line-height: 1.6;
+  }
+  th { background: var(--surface); font-weight: 700; }
+  .notation {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 16px;
+    margin: 8px 0;
+    background: var(--surface);
+    border-radius: 6px;
+  }
+  .notation .sym {
+    font-family: "SF Mono", Menlo, monospace;
+    font-size: 14px;
+    background: white;
+    padding: 6px 12px;
+    border-radius: 4px;
+    text-align: center;
+    border: 1px solid var(--border);
+  }
+  .notation .desc { font-size: 14px; }
+  .box-diagram {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+    flex-wrap: wrap;
+  }
+  .box-diagram .box {
+    background: white;
+    border: 2px solid var(--accent);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    min-width: 100px;
+    text-align: center;
+  }
+  .box-diagram .interface { border-color: var(--accent2); }
+  .box-diagram .arrow { color: var(--muted); font-size: 18px; }
+  .q {
+    background: var(--highlight);
+    padding: 10px 18px;
+    border-radius: 8px;
+    margin: 24px 0 8px;
+    font-weight: 700;
+    font-size: 17px;
+  }
+  .q::before { content: "❓ "; }
+  .term {
+    background: var(--highlight);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-weight: 600;
+  }
+  .pair-wrong-right {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0;
+  }
+  .pair-wrong-right > div {
+    padding: 16px 20px;
+    border-radius: 8px;
+  }
+  .pair-wrong-right .wrong {
+    background: #fee2e2;
+    border: 1px solid #fca5a5;
+  }
+  .pair-wrong-right .right {
+    background: #d1fae5;
+    border: 1px solid #6ee7b7;
+  }
+  .pair-wrong-right h4 { margin-top: 0; }
+  .layer-stack {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin: 16px 0;
+  }
+  .layer-stack .layer {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .layer-stack .layer:last-child { border-bottom: none; }
+  .layer-stack .layer.domain { background: #ede9fe; }
+  .layer-stack .layer.app    { background: #dbeafe; }
+  .layer-stack .layer.port   { background: #fef3c7; }
+  .layer-stack .layer.infra  { background: #d1fae5; }
+  .layer-stack .layer-name {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--fg);
+  }
+  .layer-stack .layer-desc {
+    font-size: 14px;
+    color: var(--fg);
+    margin-top: 4px;
+  }
+  a.anchor-link {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px dashed var(--accent);
+  }
+  .tag-line {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 8px 0;
+  }
+  .tag {
+    display: inline-block;
+    background: var(--code-bg);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .tag.pos { background: #dbeafe; color: var(--accent); }
+  .tag.neg { background: #fee2e2; color: var(--bad); }
+  .class-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 16px 0;
+    background: var(--surface);
+  }
+  .class-card h3 {
+    margin-top: 0;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .class-card h3 .class-layer {
+    font-size: 13px;
+    padding: 2px 10px;
+    border-radius: 10px;
+    color: var(--muted);
+    background: white;
+    border: 1px solid var(--border);
+    font-weight: 600;
+  }
+  .footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .embedded-diagram {
+    background: #fafbfc;
+    padding: 18px 22px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    margin: 24px 0 32px;
+  }
+  .embedded-diagram .diagram-label {
+    font-size: 16px;
+    margin-bottom: 4px;
+    color: var(--accent);
+  }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    aside { position: relative; height: auto; }
+  }
+</style>
+</head>
+<body>
+<div class="layout">
+
+<aside>
+  <h3>目次</h3>
+  <ol>
+    <li><a href="#intro">このドキュメントの使い方</a></li>
+    <li><a href="#notation">クラス図の記号の読み方</a>
+      <ol class="subsection">
+        <li><a href="#notation-interface"><code>&lt;&lt;interface&gt;&gt;</code> とは</a></li>
+        <li><a href="#notation-arrows">矢印の 4 種類</a></li>
+        <li><a href="#notation-box">四角の形と色</a></li>
+      </ol>
+    </li>
+    <li><a href="#layers">層（レイヤー）の考え方</a>
+      <ol class="subsection">
+        <li><a href="#layer-domain">domain（ドメイン）</a></li>
+        <li><a href="#layer-app">application</a></li>
+        <li><a href="#layer-port">port</a></li>
+        <li><a href="#layer-infra">infrastructure / adapter</a></li>
+        <li><a href="#layer-direction">依存方向のルール</a></li>
+      </ol>
+    </li>
+    <li><a href="#vo">値オブジェクトって何?</a></li>
+    <li><a href="#naming">命名の原則</a></li>
+    <li><a href="#diagrams">クラス図 4 枚を見る</a></li>
+    <li><a href="#classes">主要クラス逐次解説</a>
+      <ol class="subsection">
+        <li><a href="#6a">6a. 値オブジェクト + LotPolicy（図 A）</a></li>
+        <li><a href="#c-lp" style="padding-left:22px;">LotPolicy</a></li>
+        <li><a href="#c-mrblp" style="padding-left:22px;">MaintenanceRatioBasedLotPolicy</a></li>
+        <li><a href="#6b">6b. AllocationPolicy と LotAllocation（図 B）</a></li>
+        <li><a href="#c-ap" style="padding-left:22px;">AllocationPolicy</a></li>
+        <li><a href="#c-la" style="padding-left:22px;">LotAllocation</a></li>
+        <li><a href="#6c">6c. エントリー発注の流れ（図 C）</a></li>
+        <li><a href="#c-pm" style="padding-left:22px;">PositionManager</a></li>
+        <li><a href="#c-pss" style="padding-left:22px;">PositionSizingService</a></li>
+        <li><a href="#c-eq" style="padding-left:22px;">EntryQueue</a></li>
+        <li><a href="#6d">6d. 決済フローと port / adapter（図 D）</a></li>
+        <li><a href="#c-broker" style="padding-left:22px;">Broker</a></li>
+        <li><a href="#c-balanceport" style="padding-left:22px;">BalancePort</a></li>
+        <li><a href="#c-positionrepo" style="padding-left:22px;">PositionRepository</a></li>
+        <li><a href="#c-gba" style="padding-left:22px;">GmoBalanceAdapter</a></li>
+        <li><a href="#c-gbr" style="padding-left:22px;">GmoBrokerAdapter</a></li>
+      </ol>
+    </li>
+    <li><a href="#whys">典型的な「なぜ?」への答え</a></li>
+    <li><a href="#glossary">用語集</a></li>
+  </ol>
+</aside>
+
+<main>
+
+<h1>クラス図を読むための補足資料</h1>
+<p class="lead">
+  PositionManager 設計（Issue #51）のクラス図を初めて読む人向けの解説です。図の記号、層の考え方、個々のクラスがなぜ存在するのか、命名の理由などを書いています。クラス図の <code>.drawio</code> ファイルと並べて読むと理解が早いです。
+</p>
+
+<section id="intro">
+<h2>1. このドキュメントの使い方</h2>
+
+<p>クラス図を読む時に出てくる疑問は、だいたい 3 種類です:</p>
+
+<ul>
+  <li><strong>記号がわからない</strong> — <code>&lt;&lt;interface&gt;&gt;</code> って何? 点線矢印と実線矢印の違いは?</li>
+  <li><strong>なぜこの配置?</strong> — Broker が <em>port</em> 層に置かれている理由は? なぜ domain にない?</li>
+  <li><strong>なぜこの名前?</strong> — BalanceCache じゃなくて GmoBalanceAdapter と呼ぶ理由は?</li>
+</ul>
+
+<p>このドキュメントは、その 3 種類の疑問に順番に答える構造になっています。読み方のおすすめ:</p>
+
+<ol>
+  <li>最初にセクション 2〜3（記号と層の考え方）で<strong>土台</strong>を掴む</li>
+  <li>その上でクラス図（<code>.drawio</code>）を開いて眺める</li>
+  <li>気になるクラスが出てきたらセクション 6（主要クラス逐次解説）の該当項目を読む</li>
+</ol>
+
+<div class="callout info">
+  <strong>どの図のどの部分?</strong> クラス図は 4 枚あります:<br>
+  ・ <code>value-objects-and-lot-policy.drawio</code> — ロット計算まわりの VO と LotPolicy<br>
+  ・ <code>allocation-policy.drawio</code> — 配分ロジック<br>
+  ・ <code>composition-entry-flow.drawio</code> — エントリー発注の流れ<br>
+  ・ <code>composition-exit-and-ports.drawio</code> — 決済の流れと port / adapter の対応
+</div>
+</section>
+
+<section id="notation">
+<h2>2. クラス図の記号の読み方</h2>
+<p class="lead">drawio のクラス図で使われている記号を 1 つずつ説明します。</p>
+
+<section id="notation-interface">
+<h3>2a. <code>&lt;&lt;interface&gt;&gt;</code> とは</h3>
+
+<p class="q"><code>&lt;&lt;interface&gt;&gt;</code> って何?</p>
+
+<p><strong>interface（インターフェース）</strong> とは、「こういうメソッドを持ちますよ」という契約だけを定義したもの。中身の実装は持ちません。</p>
+
+<div class="box-diagram">
+  <div class="box interface">&lt;&lt;interface&gt;&gt;<br>Broker<br>+ placeEntry()<br>+ placeExit()</div>
+  <div class="arrow">←──── implements ────</div>
+  <div class="box">GmoBrokerAdapter<br><span style="font-size:12px;color:#6b7280;">(実装クラス)</span></div>
+</div>
+
+<p>上の図は「Broker という interface に対して、GmoBrokerAdapter がその実装を提供している」という関係を表しています。</p>
+
+<p class="q">なぜ interface を使うのか?</p>
+
+<p>主に <strong>差し替え可能にするため</strong> です:</p>
+<ul>
+  <li>テストでは「本物の GMO に発注しない偽物の Broker」を使いたい</li>
+  <li>将来 GMO 以外のブローカー（例: OANDA）にも対応するかもしれない</li>
+  <li>使う側（例: EntryExecution）は「Broker という契約」だけ知っていればよく、どの実装が繋がるかは気にしない</li>
+</ul>
+
+<p>コードで書くとこんな感じ:</p>
+
+<pre>// 契約だけ定義
+interface Broker {
+  placeEntry(command: EntryCommand): Promise&lt;EntryResult&gt;;
+}
+
+// 本物の実装
+class GmoBrokerAdapter implements Broker {
+  placeEntry(cmd) { /* 実際の GMO API コール */ }
+}
+
+// テスト用の偽物
+class FakeBroker implements Broker {
+  placeEntry(cmd) { /* メモリに記録するだけ */ }
+}
+
+// 使う側は interface を通して呼ぶ
+class EntryExecution {
+  constructor(private readonly broker: Broker) {}  // ← 契約で受ける
+  execute(cmd) { this.broker.placeEntry(cmd); }
+}</pre>
+
+<p>「interface で受ける」ことで、<strong>使う側のコードは変えずに</strong>、本物と偽物を切り替えられます。</p>
+</section>
+
+<section id="notation-arrows">
+<h3>2b. 矢印の 4 種類</h3>
+
+<p>クラス図に出てくる矢印は、意味が 4 通りあります。形と色を覚えると意味がすぐわかります。</p>
+
+<div class="notation">
+  <div class="sym" style="border-style: dashed;">─ ─ ─▷</div>
+  <div class="desc"><strong>実装関係（implements）</strong> — 点線 + block 矢印。「A interface を B クラスが実装している」</div>
+</div>
+
+<div class="notation">
+  <div class="sym">─────▷</div>
+  <div class="desc"><strong>継承（extends）</strong> — 実線 + block 矢印。「A クラスを B クラスが継承している」（本設計ではあまり使っていません）</div>
+</div>
+
+<div class="notation">
+  <div class="sym" style="border-style: dashed;">─ ─ ─ ➤</div>
+  <div class="desc"><strong>依存（uses）</strong> — 点線 + open 矢印。「A が B を使う（呼ぶ・引数に取る）」</div>
+</div>
+
+<div class="notation">
+  <div class="sym">◆─────</div>
+  <div class="desc"><strong>合成（composition）</strong> — 菱形 + 実線。「A は B を内部に持っている（B 無しでは A が成立しない）」</div>
+</div>
+
+<h4>例で見る</h4>
+
+<p><code>composition-entry-flow.drawio</code> の中から:</p>
+
+<ul>
+  <li><code>PositionManager ─ ─ ─➤ AllocationPolicy</code> — PositionManager は AllocationPolicy を<strong>使う</strong>（内部にインスタンスを持って呼ぶ）</li>
+  <li><code>GmoBalanceAdapter ─ ─ ─▷ BalancePort</code> — GmoBalanceAdapter は BalancePort を<strong>実装する</strong>（契約を満たす）</li>
+  <li><code>LotDecisionInput ◆──── Balance</code> — LotDecisionInput は Balance を<strong>内部に持つ</strong>（フィールドとして保持）</li>
+</ul>
+</section>
+
+<section id="notation-box">
+<h3>2c. 四角の形と色</h3>
+
+<p>クラス図の四角（箱）は、以下のパターンで色分けされています:</p>
+
+<table>
+  <tr><th>見た目</th><th>意味</th><th>例</th></tr>
+  <tr><td>黄色の背景 + <code>&lt;&lt;enum&gt;&gt;</code></td><td>列挙型（取りうる値が決まっている）</td><td><code>Currency</code>, <code>StrategyName</code></td></tr>
+  <tr><td>薄黄の背景（swimlane 形）</td><td>値オブジェクト</td><td><code>Balance</code>, <code>Rate</code>, <code>Lot</code></td></tr>
+  <tr><td>薄青 + <code>&lt;&lt;interface&gt;&gt;</code></td><td>interface（契約のみ）</td><td><code>LotPolicy</code>, <code>Broker</code></td></tr>
+  <tr><td>濃いめの青</td><td>初期実装クラス（今回新しく書くもの）</td><td><code>PositionManager</code>, <code>EqualWeightAllocationPolicy</code></td></tr>
+  <tr><td>薄紫</td><td>domain 層の何か</td><td><code>LotPolicy</code> 周辺</td></tr>
+  <tr><td>薄緑</td><td>infrastructure 層（実装詳細）</td><td><code>GmoBalanceAdapter</code>, <code>GmoBrokerAdapter</code></td></tr>
+  <tr><td>破線枠 + 薄色</td><td>将来実装される候補</td><td><code>FixedRatioAllocationPolicy</code>, <code>RiskBudgetedAllocationPolicy</code></td></tr>
+  <tr><td>薄グレー枠 + 「(参照)」</td><td>別の図で描かれているクラスの参照</td><td><code>LotPolicy (ref)</code> が composition-entry-flow に登場</td></tr>
+  <tr><td>黄色の付箋（角折れ）</td><td>日本語の解説メモ</td><td>各図に 4〜5 枚</td></tr>
+</table>
+</section>
+</section>
+
+<section id="layers">
+<h2>3. 層（レイヤー）の考え方</h2>
+<p class="lead">Luchida は Clean Architecture という設計パターンに沿っています。コードを役割ごとにフォルダ（層）に分けて、互いの依存方向をルール化しています。</p>
+
+<div class="layer-stack">
+  <div class="layer domain">
+    <div class="layer-name">domain（ドメイン）</div>
+    <div class="layer-desc">ビジネスの計算と判断だけ。DB も API も知らない純粋なロジック</div>
+  </div>
+  <div class="layer app">
+    <div class="layer-name">application (action)</div>
+    <div class="layer-desc">「ユースケース」の組み立て役。domain を呼んで処理を繋げる</div>
+  </div>
+  <div class="layer port">
+    <div class="layer-name">port</div>
+    <div class="layer-desc">外の世界との「受け口」の定義（interface のみ）</div>
+  </div>
+  <div class="layer infra">
+    <div class="layer-name">infrastructure / adapter</div>
+    <div class="layer-desc">実際に DB や API を叩く実装</div>
+  </div>
+</div>
+
+<section id="layer-domain">
+<h3>3a. domain（ドメイン）</h3>
+
+<p><strong>ビジネスロジックだけが住む場所</strong>。外の世界（DB、API、ファイル、時刻、ネットワーク）を一切知らないように作ります。</p>
+
+<p>ここに置くもの:</p>
+<ul>
+  <li>値オブジェクト（<code>Balance</code>、<code>Rate</code>、<code>Lot</code> など）</li>
+  <li>エンティティ（<code>Position</code> など）</li>
+  <li>ドメインサービス（<code>LotPolicy</code> の実装、<code>AllocationPolicy</code> の実装）</li>
+</ul>
+
+<p>なぜ純粋に保つのか? テストが簡単になる、再利用しやすい、変更の影響範囲が限定される、など複数の理由があります。</p>
+</section>
+
+<section id="layer-app">
+<h3>3b. application (action)</h3>
+
+<p><strong>ユースケースの組み立て役</strong>。「〇〇をしたい」という要求を受けて、domain の部品を順番に呼んで処理を完結させます。</p>
+
+<p>ここに置くもの:</p>
+<ul>
+  <li><code>PositionManager</code> — 「シグナルを受けて発注する」ユースケース</li>
+  <li><code>PositionSizingService</code> — 「残高からロットを決める」ユースケース</li>
+  <li><code>EntryExecution</code> — 「個別エントリーを実行する」ユースケース</li>
+  <li><code>EntryQueue</code> — 発注順序を管理する部品</li>
+</ul>
+
+<p>application 層は domain を呼び出し、<strong>port に対して</strong>（実装クラスではなく）依頼を出します。</p>
+</section>
+
+<section id="layer-port">
+<h3>3c. port</h3>
+
+<p><strong>外の世界との「受け口」の定義</strong>。interface だけを置く場所。実装は置きません。</p>
+
+<p>ここに置くもの:</p>
+<ul>
+  <li><code>BalancePort</code> — 残高取得の契約</li>
+  <li><code>RatePort</code> — レート取得の契約</li>
+  <li><code>Broker</code> — 発注の契約</li>
+  <li><code>PositionRepository</code> — ポジション保存の契約</li>
+</ul>
+
+<p>port があるおかげで、application は「残高を取る方法」を知らずに「残高を取って」とだけ頼める。実装は infrastructure 層が提供します。</p>
+
+<div class="callout info">
+  <strong>Ports &amp; Adapters パターン</strong>と呼ばれる考え方です。core（domain + application）は「穴」（port）だけ空けておき、そこに「プラグ」（adapter）を差し込む構造。プラグ（例: GMO or OANDA）を差し替えても core は影響を受けません。
+</div>
+</section>
+
+<section id="layer-infra">
+<h3>3d. infrastructure / adapter</h3>
+
+<p><strong>実際に DB や API を叩く実装</strong>。port の契約を満たす具体的なクラスを置きます。</p>
+
+<p>ここに置くもの:</p>
+<ul>
+  <li><code>GmoBalanceAdapter</code> — GMO API で残高取得。内部で 5 秒キャッシュ</li>
+  <li><code>GmoBrokerAdapter</code> — GMO API で発注</li>
+  <li><code>PgPositionRepository</code> — PostgreSQL でポジションを保存</li>
+</ul>
+
+<p>この層は「どうやって外部と話すか」を全部引き受けます。外部の都合（API のリクエスト仕様、スロットリング、エラー処理、キャッシュ等）はここに閉じ込めます。</p>
+</section>
+
+<section id="layer-direction">
+<h3>3e. 依存方向のルール</h3>
+
+<p>層の間の矢印（依存）は<strong>内側に向かう</strong>のが原則:</p>
+
+<div class="box-diagram" style="justify-content:center;">
+  <div class="box infra" style="border-color:var(--good);background:#d1fae5;">infrastructure</div>
+  <div class="arrow">→</div>
+  <div class="box" style="border-color:var(--warn);background:#fef3c7;">port</div>
+  <div class="arrow">→</div>
+  <div class="box" style="background:#dbeafe;">application</div>
+  <div class="arrow">→</div>
+  <div class="box domain" style="background:#ede9fe;">domain</div>
+</div>
+
+<p>つまり:</p>
+<ul>
+  <li><strong>domain は何にも依存しない</strong>（最も純粋）</li>
+  <li><strong>application は domain と port を使う</strong>（infrastructure を知らない）</li>
+  <li><strong>port は interface だけで依存ゼロ</strong></li>
+  <li><strong>infrastructure は port を実装する</strong>（内側に依存）</li>
+</ul>
+
+<p>この方向を守ることで、「外側の都合で内側を書き換えたくなる」事態を防ぎます。</p>
+
+<div class="callout bad">
+  <strong>やってはいけない例</strong>: domain 層のコードが <code>import { GmoRestClient } from '../infrastructure/...'</code> と書く。これは「内側が外側を知る」ことになり、Clean Architecture 違反です。今回の案 A 〜 C が却下された理由の 1 つがこれ。
+</div>
+</section>
+</section>
+
+<section id="vo">
+<h2>4. 値オブジェクトって何?</h2>
+
+<p class="q">値オブジェクト（Value Object）って何?</p>
+
+<p><strong>ただの数値や文字列ではなく、意味と制約（ルール）を内側に持ったデータの箱</strong>。</p>
+
+<div class="pair-wrong-right">
+  <div class="wrong">
+    <h4>❌ プリミティブ型で扱う場合</h4>
+<pre style="background:#7f1d1d;">function calculateLot(
+  balance: number,
+  rate: number,
+  marginRate: number,
+): number { ... }</pre>
+    <ul>
+      <li>呼び出し側で引数順を間違えても気づかない</li>
+      <li>負の balance を渡してもそのまま動いてしまう</li>
+      <li>rate が NaN や 0 でもチェックされない</li>
+      <li>単位（円? ドル?）が型で区別できない</li>
+    </ul>
+  </div>
+  <div class="right">
+    <h4>✅ 値オブジェクトで扱う場合</h4>
+<pre style="background:#064e3b;">function calculateLot(
+  balance: Balance,
+  rate: Rate,
+  marginRate: MarginRate,
+): Lot { ... }</pre>
+    <ul>
+      <li>引数順を間違えると型エラーでコンパイル失敗</li>
+      <li>Balance は負にならない（生成時に弾く）</li>
+      <li>Rate は 0 や NaN を許さない</li>
+      <li>Money が通貨を持つので単位違いはありえない</li>
+    </ul>
+  </div>
+</div>
+
+<h3>値オブジェクトの 3 つの性質</h3>
+
+<ol>
+  <li><strong>不変（immutable）</strong> — 生成後に値を変えられない</li>
+  <li><strong>同一性は属性値のみで決まる</strong> — Balance(1000円) と Balance(1000円) は「同じもの」</li>
+  <li><strong>自己検証</strong> — 生成時に不正な値を弾く</li>
+</ol>
+
+<h3>コード例</h3>
+
+<pre>export class Balance {
+  private constructor(private readonly amount: Money) {}
+
+  static of(amount: Money): Balance {
+    if (amount.isNegative()) {
+      throw new Error('Balance は負になれません');  // ← 自己検証
+    }
+    return new Balance(amount);
+  }
+
+  // 操作は値オブジェクトのメソッドに生やす
+  multipliedBy(ratio: Ratio): Money {
+    return this.amount.times(ratio);
+  }
+}</pre>
+
+<p>このクラスは <code>new Balance(...)</code> で直接作れず、<code>Balance.of(money)</code> のファクトリ経由でしか生成できません。ファクトリが不変条件を検証するので、Balance が存在している時点で「非負の金額」が保証されます。</p>
+
+<div class="callout good">
+  <strong>利点</strong>: バグを早期に捕捉できる。コードを読んだ時に型名から意味が伝わる（<code>number</code> より <code>Balance</code> のほうが何を表しているか明確）。
+</div>
+</section>
+
+<section id="naming">
+<h2>5. 命名の原則</h2>
+
+<p class="lead">名前はコードを読む人（他人、3 ヶ月後の自分）への最大のドキュメントです。役割が名前でわかれば、コメントを書かずに済みます。</p>
+
+<h3>5a. ユビキタス言語</h3>
+
+<p><strong>プロジェクトに関わる全員（開発者・設計者・将来の保守者）が共通に使う言葉</strong>を、コードの中でも一貫して使います。</p>
+
+<p>例: FX 業界では「ポジションのサイズをどう決めるか」を <strong>"Position Sizing"</strong> と呼びます。だから配分決定部品は <code>PositionSizingService</code>。これを <code>LotCalculator</code> や <code>LotDecider</code> と呼ぶと業界語彙から外れ、読んだ人が「何これ?」となります。</p>
+
+<h3>5b. 層ごとの命名パターン</h3>
+
+<table>
+  <tr><th>層</th><th>よくある接尾辞</th><th>例</th></tr>
+  <tr><td>domain</td><td>なし（名詞そのまま）/ Policy / Rule</td><td><code>Position</code>, <code>LotAllocation</code>, <code>AllocationPolicy</code>, <code>SmaCrossEntryRule</code></td></tr>
+  <tr><td>application</td><td>Service / UseCase / Execution / Manager</td><td><code>PositionSizingService</code>, <code>EntryExecution</code>, <code>PositionManager</code></td></tr>
+  <tr><td>port</td><td>Port / Repository（interface の役割を示す）</td><td><code>BalancePort</code>, <code>PositionRepository</code></td></tr>
+  <tr><td>infrastructure</td><td>Adapter / ベンダー名を含む実装名</td><td><code>GmoBalanceAdapter</code>, <code>PgPositionRepository</code></td></tr>
+</table>
+
+<h3>5c. 「なぜその名前?」という観点で読む</h3>
+
+<p>名前に違和感があれば、それは設計の匂いかもしれません。今回のリネーム 3 つはすべて、名前の違和感から設計を見直した結果です（セクション 6 で詳述）。</p>
+</section>
+
+
+<section id="classes">
+<h2>6. 主要クラス逐次解説</h2>
+<p class="lead">クラス図に出てくる主要クラスを、<strong>なぜ存在するか / なぜその名前か / どこに依存するか</strong>の観点で説明します。各領域ごとに該当するクラス図を埋め込んでいるので、図と解説を突き合わせながら読んでください。図のツールバーから<strong>ズーム</strong>・<strong>フルスクリーン</strong>・<strong>drawio で開く</strong>も可能です。</p>
+
+<h3 id="6a">6a. 値オブジェクトと LotPolicy（図 A）</h3>
+
+<div class="embedded-diagram" id="diagram-value-objects-and-lot-policy">
+  <div class="diagram-label"><strong>図 A: 値オブジェクトと LotPolicy</strong> — <span class="small">value-objects-and-lot-policy.drawio</span></div>
+  <p class="small" style="margin:4px 0 10px;color:var(--muted);">domain 層の純粋なロット計算まわり。Balance / Money / Rate / Lot などの値オブジェクトと、LotDecisionInput（パラメータオブジェクト）、LotPolicy interface、実装 MaintenanceRatioBasedLotPolicy。</p>
+  <div class="mxgraph" style="max-width:100%;margin:0 0 8px;border:1px solid var(--border);border-radius:8px;background:white;" data-mxgraph="{&quot;highlight&quot;: &quot;#2563eb&quot;, &quot;nav&quot;: true, &quot;resize&quot;: true, &quot;toolbar&quot;: &quot;zoom layers lightbox&quot;, &quot;edit&quot;: &quot;_blank&quot;, &quot;xml&quot;: &quot;&lt;mxfile host=\&quot;65bd71144e\&quot;&gt;\n    &lt;diagram name=\&quot;値オブジェクト + LotPolicy\&quot; id=\&quot;pm-vo-lotpolicy\&quot;&gt;\n        &lt;mxGraphModel dx=\&quot;2118\&quot; dy=\&quot;925\&quot; grid=\&quot;0\&quot; gridSize=\&quot;10\&quot; guides=\&quot;1\&quot; tooltips=\&quot;1\&quot; connect=\&quot;1\&quot; arrows=\&quot;1\&quot; fold=\&quot;1\&quot; page=\&quot;0\&quot; pageScale=\&quot;1\&quot; pageWidth=\&quot;2000\&quot; pageHeight=\&quot;1400\&quot; math=\&quot;0\&quot; shadow=\&quot;0\&quot;&gt;\n            &lt;root&gt;\n                &lt;mxCell id=\&quot;0\&quot;/&gt;\n                &lt;mxCell id=\&quot;1\&quot; parent=\&quot;0\&quot;/&gt;\n                &lt;mxCell id=\&quot;bg\&quot; value=\&quot;\&quot; style=\&quot;whiteSpace=wrap;html=1;fontColor=#333333;fillColor=#f5f5f5;strokeColor=#666666;labelBackgroundColor=#ffffff;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;-265\&quot; y=\&quot;34\&quot; width=\&quot;1980\&quot; height=\&quot;1350\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;title\&quot; value=\&quot;PositionManager / domain層 — 値オブジェクト + LotPolicy\&quot; style=\&quot;text;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;30\&quot; y=\&quot;20\&quot; width=\&quot;1400\&quot; height=\&quot;36\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;subtitle\&quot; value=\&quot;上段=基礎VO ／ 中段=派生VO ／ 下段=LotDecisionInput→LotPolicy→実装。flow は上→下\&quot; style=\&quot;text;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=0;fontColor=#555555;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;30\&quot; y=\&quot;56\&quot; width=\&quot;1400\&quot; height=\&quot;22\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;rowBasic\&quot; value=\&quot;基礎の値オブジェクト（ドメインの語彙）\&quot; style=\&quot;shape=mxgraph.basic.rect;fillColor=#fce4d6;strokeColor=#e6873e;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=4;rounded=1;arcSize=4;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;30\&quot; y=\&quot;100\&quot; width=\&quot;1380\&quot; height=\&quot;170\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;currency\&quot; value=\&quot;&amp;lt;&amp;lt;enum&amp;gt;&amp;gt;&amp;#10;Currency\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=40;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;50\&quot; y=\&quot;130\&quot; width=\&quot;250\&quot; height=\&quot;130\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;currencyContent\&quot; value=\&quot;JPY, USD, EUR, GBP,&amp;#10;AUD, NZD, CAD, CHF,&amp;#10;TRY, ZAR, MXN&amp;#10;{通貨単位を型として表現}\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=10;fontColor=#000000;\&quot; parent=\&quot;currency\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;40\&quot; width=\&quot;250\&quot; height=\&quot;90\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;money\&quot; value=\&quot;Money 金額\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;320\&quot; y=\&quot;130\&quot; width=\&quot;250\&quot; height=\&quot;130\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;moneyContent\&quot; value=\&quot;amount: BigDecimal&amp;#10;currency: Currency&amp;#10;{amount &amp;gt;= 0}&amp;#10;--&amp;#10;+ jpy(amount): Money&amp;#10;+ plus/minus(other): Money\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=10;fontColor=#000000;\&quot; parent=\&quot;money\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;30\&quot; width=\&quot;250\&quot; height=\&quot;100\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;balance\&quot; value=\&quot;Balance 残高\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;590\&quot; y=\&quot;130\&quot; width=\&quot;250\&quot; height=\&quot;130\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;balanceContent\&quot; value=\&quot;value: Money&amp;#10;{Money.amount &amp;gt;= 0}&amp;#10;--&amp;#10;+ of(value): Balance&amp;#10;+ asMoney(): Money&amp;#10;+ isEnoughFor(required): bool\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=10;fontColor=#000000;\&quot; parent=\&quot;balance\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;30\&quot; width=\&quot;250\&quot; height=\&quot;100\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;ratio\&quot; value=\&quot;Ratio 比率\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;860\&quot; y=\&quot;130\&quot; width=\&quot;250\&quot; height=\&quot;130\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;ratioContent\&quot; value=\&quot;value: BigDecimal&amp;#10;{0 &amp;lt;= value &amp;lt;= 1}&amp;#10;--&amp;#10;+ of(value): Ratio&amp;#10;+ zero(): Ratio&amp;#10;+ plus/times(other): Ratio\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=10;fontColor=#000000;\&quot; parent=\&quot;ratio\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;30\&quot; width=\&quot;250\&quot; height=\&quot;100\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;currencyPair\&quot; value=\&quot;&amp;lt;&amp;lt;enum&amp;gt;&amp;gt;&amp;#10;CurrencyPair（既存）\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=40;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;1130\&quot; y=\&quot;130\&quot; width=\&quot;260\&quot; height=\&quot;130\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;currencyPairContent\&quot; value=\&quot;USD_JPY, EUR_JPY, ...&amp;#10;{14ペア固定}&amp;#10;--&amp;#10;+ base(): Currency&amp;#10;+ quote(): Currency\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=10;fontColor=#000000;\&quot; parent=\&quot;currencyPair\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;40\&quot; width=\&quot;260\&quot; height=\&quot;90\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;rowDerived\&quot; value=\&quot;派生の値オブジェクト（基礎VOを組み合わせた専門概念）\&quot; style=\&quot;shape=mxgraph.basic.rect;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=4;rounded=1;arcSize=4;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;30\&quot; y=\&quot;320\&quot; width=\&quot;1380\&quot; height=\&quot;200\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;rate\&quot; value=\&quot;Rate レート\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;740\&quot; y=\&quot;352\&quot; width=\&quot;310\&quot; height=\&quot;150\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;rateContent\&quot; value=\&quot;pair: CurrencyPair&amp;#10;value: BigDecimal&amp;#10;{value &amp;gt; 0。null は返さない}&amp;#10;--&amp;#10;+ of(pair, value): Rate&amp;#10;+ asPrice(): Price\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=10;fontColor=#000000;\&quot; parent=\&quot;rate\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;30\&quot; width=\&quot;310\&quot; height=\&quot;120\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;maintRatio\&quot; value=\&quot;MaintenanceRatio 維持率目標\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;55\&quot; y=\&quot;345\&quot; width=\&quot;310\&quot; height=\&quot;150\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;maintRatioContent\&quot; value=\&quot;value: BigDecimal&amp;#10;{value &amp;gt;= 1.0（ロスカット超）}&amp;#10;--&amp;#10;+ of(value): MaintenanceRatio&amp;#10;{例: 1.4 → 140% 目標}\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=10;fontColor=#000000;\&quot; parent=\&quot;maintRatio\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;30\&quot; width=\&quot;310\&quot; height=\&quot;120\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;marginRate\&quot; value=\&quot;MarginRate 証拠金率\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;394\&quot; y=\&quot;352\&quot; width=\&quot;310\&quot; height=\&quot;150\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;marginRateContent\&quot; value=\&quot;value: BigDecimal&amp;#10;{0 &amp;lt; value &amp;lt; 1。レバの逆数}&amp;#10;--&amp;#10;+ of(value): MarginRate&amp;#10;{例: 0.04 → レバレッジ25倍}\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=10;fontColor=#000000;\&quot; parent=\&quot;marginRate\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;30\&quot; width=\&quot;310\&quot; height=\&quot;120\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;lot\&quot; value=\&quot;Lot 取引数量（既存）\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;1080\&quot; y=\&quot;350\&quot; width=\&quot;310\&quot; height=\&quot;150\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;lotContent\&quot; value=\&quot;value: int&amp;#10;{100〜500,000、100の倍数}&amp;#10;--&amp;#10;+ of(value): Lot\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=10;fontColor=#000000;\&quot; parent=\&quot;lot\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;30\&quot; width=\&quot;310\&quot; height=\&quot;120\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;lotInput\&quot; value=\&quot;LotDecisionInput&amp;#10;ロット決定の入力（パラメータオブジェクト）\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=45;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;340\&quot; y=\&quot;580\&quot; width=\&quot;760\&quot; height=\&quot;160\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;lotInputContent\&quot; value=\&quot;pair: CurrencyPair&amp;#10;balance: Balance&amp;#10;rate: Rate&amp;#10;target: MaintenanceRatio&amp;#10;marginRate: MarginRate&amp;#10;--&amp;#10;+ of(pair, balance, rate, target, marginRate): LotDecisionInput&amp;#10;{値オブジェクトだけで束ねる。pair と rate.pair は一致（不変条件）}\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#dae8fc;strokeColor=none;fontSize=11;fontColor=#000000;\&quot; parent=\&quot;lotInput\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;45\&quot; width=\&quot;760\&quot; height=\&quot;115\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;lotPolicyIf\&quot; value=\&quot;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&amp;#10;LotPolicy\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;430\&quot; y=\&quot;820\&quot; width=\&quot;580\&quot; height=\&quot;120\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;lotPolicyIfContent\&quot; value=\&quot;+ decide(input: LotDecisionInput): Lot&amp;#10;--&amp;#10;{純粋ドメインサービス。I/O なし。値オブジェクトだけで計算}\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=11;fontColor=#000000;\&quot; parent=\&quot;lotPolicyIf\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;45\&quot; width=\&quot;580\&quot; height=\&quot;75\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;maintLotPolicy\&quot; value=\&quot;MaintenanceRatioBasedLotPolicy&amp;#10;（旧 MarginBasedLotPolicy）\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=45;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;390\&quot; y=\&quot;1020\&quot; width=\&quot;660\&quot; height=\&quot;240\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;maintLotPolicyContent\&quot; value=\&quot;+ decide(input: LotDecisionInput): Lot&amp;#10;--&amp;#10;計算:&amp;#10;  requiredMargin = rate * marginRate * (1 unit)&amp;#10;  idealLot      = balance / (requiredMargin * target)&amp;#10;  → Lot 制約（100刻み、下限/上限）に正規化&amp;#10;--&amp;#10;{純粋計算のみ。I/O を知らない}&amp;#10;{維持率 target を満たすロットを上限として決定}\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#d5e8d4;strokeColor=none;fontSize=11;fontColor=#000000;\&quot; parent=\&quot;maintLotPolicy\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;45\&quot; width=\&quot;660\&quot; height=\&quot;195\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;groupNotes\&quot; value=\&quot;設計のポイント\&quot; style=\&quot;shape=mxgraph.basic.rect;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=4;rounded=1;arcSize=4;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;1440\&quot; y=\&quot;100\&quot; width=\&quot;540\&quot; height=\&quot;1240\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;note1\&quot; value=\&quot;値オブジェクトは不変条件を内部で守る&amp;#10;&amp;#10;・Balance: 非負&amp;#10;・Ratio: 0〜1&amp;#10;・MaintenanceRatio: 1.0 以上&amp;#10;・MarginRate: 0〜1 の正値&amp;#10;&amp;#10;不正な値はコンストラクタで弾き、&amp;#10;ドメインの内側には正しい値しか入らない\&quot; style=\&quot;shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;1460\&quot; y=\&quot;140\&quot; width=\&quot;500\&quot; height=\&quot;200\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;note2\&quot; value=\&quot;LotPolicy は純粋ドメインサービス&amp;#10;&amp;#10;・I/O を一切持たない&amp;#10;・引数は値オブジェクトだけで束ねる&amp;#10;  （LotDecisionInput）&amp;#10;・戻り値も値オブジェクト（Lot）&amp;#10;&amp;#10;→ テスト容易・差し替え容易&amp;#10;→ 将来 VolatilityTargetingLotPolicy（#122）&amp;#10;  などを実装差し替えで導入可能\&quot; style=\&quot;shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;1460\&quot; y=\&quot;360\&quot; width=\&quot;500\&quot; height=\&quot;220\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;note3\&quot; value=\&quot;本改修の狙い：number 型を domain から追い出す&amp;#10;&amp;#10;・従来: number を domain が直に扱っていた&amp;#10;  → 単位や不変条件が型に現れない&amp;#10;  → 取り違えバグ・null チェックの氾濫&amp;#10;&amp;#10;・今回: Balance / Rate / MaintenanceRatio /&amp;#10;  MarginRate / Ratio を整備&amp;#10;  → 型だけで意味が伝わる&amp;#10;  → null の居場所を境界に限定\&quot; style=\&quot;shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;1460\&quot; y=\&quot;600\&quot; width=\&quot;500\&quot; height=\&quot;230\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;note4\&quot; value=\&quot;Rate は null を返さない&amp;#10;&amp;#10;・取得失敗は application 層で例外ハンドル&amp;#10;・domain に null は渡さない&amp;#10;・古レートでの発注事故を防ぐため、&amp;#10;  取れない時は「発注中止」で良い&amp;#10;&amp;#10;現状 getCurrentRate(): number | null だが、&amp;#10;本改修で Rate 値オブジェクトに置き換える\&quot; style=\&quot;shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;1460\&quot; y=\&quot;850\&quot; width=\&quot;500\&quot; height=\&quot;200\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;note5\&quot; value=\&quot;命名の確定（brief.md 5.1）&amp;#10;&amp;#10;・DynamicLotCalculator → PositionSizingService&amp;#10;・MarginBasedLotPolicy →&amp;#10;    MaintenanceRatioBasedLotPolicy&amp;#10;・BalanceCache → GmoBalanceAdapter&amp;#10;&amp;#10;FX 業界用語とドメインの意図に寄せる。&amp;#10;キャッシュは実装詳細なのでクラス名に出さない。\&quot; style=\&quot;shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;1460\&quot; y=\&quot;1070\&quot; width=\&quot;500\&quot; height=\&quot;210\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;arrMoneyCurrency\&quot; value=\&quot;currency\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=diamond;endFill=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;money\&quot; target=\&quot;currency\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;arrBalanceMoney\&quot; value=\&quot;value\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=diamond;endFill=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;balance\&quot; target=\&quot;money\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;arrRatePair\&quot; value=\&quot;pair\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=diamond;endFill=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;rate\&quot; target=\&quot;currencyPair\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;&gt;\n                        &lt;Array as=\&quot;points\&quot;&gt;\n                            &lt;mxPoint x=\&quot;939\&quot; y=\&quot;352\&quot;/&gt;\n                            &lt;mxPoint x=\&quot;939\&quot; y=\&quot;306\&quot;/&gt;\n                            &lt;mxPoint x=\&quot;1260\&quot; y=\&quot;306\&quot;/&gt;\n                        &lt;/Array&gt;\n                    &lt;/mxGeometry&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;arrInputPair\&quot; value=\&quot;pair\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=diamond;endFill=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.9;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;lotInput\&quot; target=\&quot;currencyPair\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;&gt;\n                        &lt;Array as=\&quot;points\&quot;&gt;\n                            &lt;mxPoint x=\&quot;1024\&quot; y=\&quot;526\&quot;/&gt;\n                            &lt;mxPoint x=\&quot;1060\&quot; y=\&quot;526\&quot;/&gt;\n                            &lt;mxPoint x=\&quot;1060\&quot; y=\&quot;281\&quot;/&gt;\n                            &lt;mxPoint x=\&quot;1260\&quot; y=\&quot;281\&quot;/&gt;\n                        &lt;/Array&gt;\n                    &lt;/mxGeometry&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;arrInputBalance\&quot; value=\&quot;balance\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=diamond;endFill=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;lotInput\&quot; target=\&quot;balance\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;&gt;\n                        &lt;Array as=\&quot;points\&quot;&gt;\n                            &lt;mxPoint x=\&quot;720\&quot; y=\&quot;288\&quot;/&gt;\n                            &lt;mxPoint x=\&quot;715\&quot; y=\&quot;288\&quot;/&gt;\n                        &lt;/Array&gt;\n                    &lt;/mxGeometry&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;arrInputRate\&quot; value=\&quot;rate\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=diamond;endFill=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=0.75;exitY=0;exitDx=0;exitDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;lotInput\&quot; target=\&quot;rate\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;&gt;\n                        &lt;Array as=\&quot;points\&quot;&gt;\n                            &lt;mxPoint x=\&quot;895\&quot; y=\&quot;580\&quot;/&gt;\n                        &lt;/Array&gt;\n                    &lt;/mxGeometry&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;arrInputTarget\&quot; value=\&quot;target\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=diamond;endFill=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.4;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;lotInput\&quot; target=\&quot;maintRatio\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;&gt;\n                        &lt;Array as=\&quot;points\&quot;&gt;\n                            &lt;mxPoint x=\&quot;449\&quot; y=\&quot;580\&quot;/&gt;\n                            &lt;mxPoint x=\&quot;449\&quot; y=\&quot;533\&quot;/&gt;\n                            &lt;mxPoint x=\&quot;209\&quot; y=\&quot;533\&quot;/&gt;\n                        &lt;/Array&gt;\n                    &lt;/mxGeometry&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;arrInputMarginRate\&quot; value=\&quot;marginRate\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=diamond;endFill=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;entryX=0.5;entryY=1;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;lotInput\&quot; target=\&quot;marginRate\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;&gt;\n                        &lt;Array as=\&quot;points\&quot;&gt;\n                            &lt;mxPoint x=\&quot;549\&quot; y=\&quot;570\&quot;/&gt;\n                            &lt;mxPoint x=\&quot;549\&quot; y=\&quot;570\&quot;/&gt;\n                        &lt;/Array&gt;\n                    &lt;/mxGeometry&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;arrPolicyUsesInput\&quot; value=\&quot;decide(input)\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#666666;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;lotPolicyIf\&quot; target=\&quot;lotInput\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;arrPolicyReturnsLot\&quot; value=\&quot;returns Lot\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#666666;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=1;exitY=0.2;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;lotPolicyIf\&quot; target=\&quot;lot\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;arrImpl\&quot; value=\&quot;implements\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=0;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=11;fontColor=#000000;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;maintLotPolicy\&quot; target=\&quot;lotPolicyIf\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n            &lt;/root&gt;\n        &lt;/mxGraphModel&gt;\n    &lt;/diagram&gt;\n&lt;/mxfile&gt;&quot;}"></div>
+  <p class="small" style="text-align:right;color:var(--muted);margin:4px 0 0;">↑ ズーム・フルスクリーン・drawio で開く はツールバーから</p>
+</div>
+
+<div class="class-card" id="c-lp">
+<h3>LotPolicy <span class="class-layer">domain (interface)</span></h3>
+<p><strong>「入力パラメータ → Lot」を決めるドメインサービスの interface。</strong></p>
+
+<h4>AllocationPolicy との違い</h4>
+<table>
+  <tr><th></th><th>AllocationPolicy</th><th>LotPolicy</th></tr>
+  <tr>
+    <th>役割</th>
+    <td>戦略間の<strong>配分比率</strong>を決める</td>
+    <td>個別の発注で<strong>何ロット</strong>かを決める</td>
+  </tr>
+  <tr>
+    <th>入力</th>
+    <td>検知シグナル + ポジション + 残高</td>
+    <td>通貨ペア + 残高 + レート + 維持率</td>
+  </tr>
+  <tr>
+    <th>出力</th>
+    <td>LotAllocation（比率の集合）</td>
+    <td>Lot（単一の数値 with 不変条件）</td>
+  </tr>
+</table>
+
+<p>AllocationPolicy が「全体の分配方針」で、LotPolicy が「個別の具体的な数量計算」を担います。</p>
+
+<h4>シグネチャ</h4>
+<pre>interface LotPolicy {
+  decide(input: LotDecisionInput): Lot;
+}</pre>
+
+<p><code>LotDecisionInput</code> はパラメータオブジェクト。引数が増えてもシグネチャが壊れない設計。</p>
+</div>
+
+<div class="class-card" id="c-mrblp">
+<h3>MaintenanceRatioBasedLotPolicy <span class="class-layer">domain</span></h3>
+<p><strong>「維持率が目標値になるよう Lot を決める」という具体的な計算ロジック。LotPolicy の実装。</strong></p>
+
+<h4>なぜ長い名前?</h4>
+<p>旧称は <code>MarginBasedLotPolicy</code>（証拠金ベース）でしたが、「Margin ベース」は範囲が広すぎて意図が伝わりません。実態は「<strong>維持率（MaintenanceRatio）が目標値（例: 140%）になるようにロットを決める</strong>」という、より特定のロジック。</p>
+
+<p>長くても意図が伝わる名前の方が、読んだ人が迷いません。もし将来別の計算ロジック（例: 固定 Lot、ATR ベース）が加わった時に、名前の違いで区別できます。</p>
+
+<h4>純粋ドメインサービス</h4>
+<p>このクラスは<strong>値オブジェクトだけを受け取って値オブジェクトを返す</strong>純粋関数のようなもの。DB も API も呼ばず、渡された入力だけで結果を計算します。</p>
+
+<pre>class MaintenanceRatioBasedLotPolicy implements LotPolicy {
+  constructor(private readonly marginRate: MarginRate) {}
+
+  decide(input: LotDecisionInput): Lot {
+    // input の balance, rate, target（維持率）から計算
+    // 外部状態（時刻、API、DB）は一切参照しない
+    const capital = input.balance.amount();
+    const rate = input.rate.value();
+    const rawLot = Math.floor(
+      capital / (input.target.value() * rate * this.marginRate.value())
+    );
+    return Lot.of(Math.min(Math.max(rawLot, 100), 500_000));
+  }
+}</pre>
+
+<p>純粋関数のようなドメインサービスは、テストがとても簡単です（モック不要、ただ値を渡すだけ）。</p>
+</div>
+
+
+<h3 id="6b">6b. AllocationPolicy と LotAllocation（図 B）</h3>
+
+<div class="embedded-diagram" id="diagram-allocation-policy">
+  <div class="diagram-label"><strong>図 B: AllocationPolicy</strong> — <span class="small">allocation-policy.drawio</span></div>
+  <p class="small" style="margin:4px 0 10px;color:var(--muted);">戦略間の配分判断。LotAllocation（配分結果）、AllocationPolicy（判断 interface）、初期実装 EqualWeight、将来候補 3 種（破線・薄色）。</p>
+  <div class="mxgraph" style="max-width:100%;margin:0 0 8px;border:1px solid var(--border);border-radius:8px;background:white;" data-mxgraph="{&quot;highlight&quot;: &quot;#2563eb&quot;, &quot;nav&quot;: true, &quot;resize&quot;: true, &quot;toolbar&quot;: &quot;zoom layers lightbox&quot;, &quot;edit&quot;: &quot;_blank&quot;, &quot;xml&quot;: &quot;&lt;mxfile host=\&quot;65bd71144e\&quot;&gt;\n    &lt;diagram name=\&quot;AllocationPolicy\&quot; id=\&quot;pm-allocation\&quot;&gt;\n        &lt;mxGraphModel dx=\&quot;973\&quot; dy=\&quot;524\&quot; grid=\&quot;0\&quot; gridSize=\&quot;10\&quot; guides=\&quot;1\&quot; tooltips=\&quot;1\&quot; connect=\&quot;1\&quot; arrows=\&quot;1\&quot; fold=\&quot;1\&quot; page=\&quot;0\&quot; pageScale=\&quot;1\&quot; pageWidth=\&quot;2000\&quot; pageHeight=\&quot;1500\&quot; math=\&quot;0\&quot; shadow=\&quot;0\&quot;&gt;\n            &lt;root&gt;\n                &lt;mxCell id=\&quot;0\&quot;/&gt;\n                &lt;mxCell id=\&quot;1\&quot; parent=\&quot;0\&quot;/&gt;\n                &lt;mxCell id=\&quot;bg\&quot; value=\&quot;\&quot; style=\&quot;whiteSpace=wrap;html=1;fontColor=#333333;fillColor=#f5f5f5;strokeColor=#666666;labelBackgroundColor=#ffffff;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;10\&quot; y=\&quot;10\&quot; width=\&quot;1980\&quot; height=\&quot;1470\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;title\&quot; value=\&quot;PositionManager / domain層 — AllocationPolicy（配分判断のドメインサービス）\&quot; style=\&quot;text;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;30\&quot; y=\&quot;20\&quot; width=\&quot;1400\&quot; height=\&quot;36\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;subtitle\&quot; value=\&quot;上段=入力VO／中段=Context・結果／下段=Policy＋初期実装。将来差し替え候補は右下に薄く配置\&quot; style=\&quot;text;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=0;fontColor=#555555;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;30\&quot; y=\&quot;56\&quot; width=\&quot;1400\&quot; height=\&quot;22\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;rowInputs\&quot; value=\&quot;入力材料（別図の VO を再掲）\&quot; style=\&quot;shape=mxgraph.basic.rect;fillColor=#fce4d6;strokeColor=#e6873e;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=4;rounded=1;arcSize=4;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;30\&quot; y=\&quot;100\&quot; width=\&quot;1380\&quot; height=\&quot;170\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;ratio\&quot; value=\&quot;Ratio 比率（再掲）\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;60\&quot; y=\&quot;130\&quot; width=\&quot;300\&quot; height=\&quot;130\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;ratioContent\&quot; value=\&quot;value: BigDecimal&amp;#10;{0 &amp;lt;= value &amp;lt;= 1}&amp;#10;--&amp;#10;+ of / + plus / + times\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=10;fontColor=#000000;\&quot; parent=\&quot;ratio\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;30\&quot; width=\&quot;300\&quot; height=\&quot;100\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;balanceRef\&quot; value=\&quot;Balance（別図参照）\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=30;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;fontColor=#555555;dashed=1;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;380\&quot; y=\&quot;130\&quot; width=\&quot;300\&quot; height=\&quot;130\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;balanceRefContent\&quot; value=\&quot;value: Money&amp;#10;{value-objects-and-lot-policy.drawio 参照}\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#f5f5f5;strokeColor=none;fontSize=10;fontColor=#555555;\&quot; parent=\&quot;balanceRef\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;30\&quot; width=\&quot;300\&quot; height=\&quot;100\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;detectedSig\&quot; value=\&quot;DetectedSignals 検知シグナル群\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;700\&quot; y=\&quot;130\&quot; width=\&quot;320\&quot; height=\&quot;130\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;detectedSigContent\&quot; value=\&quot;- signals: Set&amp;lt;StrategyName&amp;gt;&amp;#10;--&amp;#10;+ of(signals): DetectedSignals&amp;#10;+ contains(s): bool&amp;#10;+ size(): int / asList(): StrategyName[]\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=10;fontColor=#000000;\&quot; parent=\&quot;detectedSig\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;30\&quot; width=\&quot;320\&quot; height=\&quot;100\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;positions\&quot; value=\&quot;Positions 保有ポジション集合\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;1040\&quot; y=\&quot;130\&quot; width=\&quot;350\&quot; height=\&quot;130\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;positionsContent\&quot; value=\&quot;- items: Position[]&amp;#10;--&amp;#10;+ openOf(strategy): Position | null&amp;#10;+ totalRequiredMargin(): Money\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=10;fontColor=#000000;\&quot; parent=\&quot;positions\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;30\&quot; width=\&quot;350\&quot; height=\&quot;100\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;allocCtx\&quot; value=\&quot;AllocationContext&amp;#10;Policy の入力（パラメータオブジェクト）\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=45;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;646\&quot; y=\&quot;391\&quot; width=\&quot;420\&quot; height=\&quot;200\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;allocCtxContent\&quot; value=\&quot;detectedSignals: DetectedSignals&amp;#10;currentPositions: Positions&amp;#10;balance: Balance&amp;#10;--&amp;#10;+ of(detected, positions, balance)&amp;#10;    : AllocationContext&amp;#10;{将来 ConvictionScores の追加は&amp;#10; ここに足すだけで済む}\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#dae8fc;strokeColor=none;fontSize=11;fontColor=#000000;\&quot; parent=\&quot;allocCtx\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;45\&quot; width=\&quot;420\&quot; height=\&quot;155\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;lotAlloc\&quot; value=\&quot;LotAllocation 配分結果（値オブジェクト）\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=45;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;fontStyle=1;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;57\&quot; y=\&quot;367\&quot; width=\&quot;560\&quot; height=\&quot;240\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;lotAllocContent\&quot; value=\&quot;- entries: Map&amp;lt;StrategyName, Ratio&amp;gt;&amp;#10;{不変条件: 合計 = 1.0。Map は外に露出させない}&amp;#10;--&amp;#10;+ of(entries): LotAllocation&amp;#10;+ equalAmong(strategies: StrategyName[]): LotAllocation&amp;#10;+ ratioOf(strategy): Ratio&amp;#10;+ isSuppressed(strategy): bool  // ratio = 0 かで判定&amp;#10;+ strategies(): StrategyName[]\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=11;fontColor=#000000;\&quot; parent=\&quot;lotAlloc\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;45\&quot; width=\&quot;560\&quot; height=\&quot;195\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;policyIf\&quot; value=\&quot;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&amp;#10;AllocationPolicy\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=14;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;200\&quot; y=\&quot;660\&quot; width=\&quot;600\&quot; height=\&quot;140\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;policyIfContent\&quot; value=\&quot;+ allocate(context: AllocationContext): LotAllocation&amp;#10;--&amp;#10;{純粋ドメインサービス。I/O を持たない}&amp;#10;{検知シグナル・保有・残高 → 配分}\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=12;fontColor=#000000;\&quot; parent=\&quot;policyIf\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;45\&quot; width=\&quot;600\&quot; height=\&quot;95\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;equalWeight\&quot; value=\&quot;EqualWeightAllocationPolicy&amp;#10;（初期実装 / 今回スコープ）\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=45;strokeWidth=2;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=13;fontStyle=1;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;180\&quot; y=\&quot;880\&quot; width=\&quot;640\&quot; height=\&quot;280\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;equalWeightContent\&quot; value=\&quot;+ allocate(context): LotAllocation&amp;#10;--&amp;#10;ロジック:&amp;#10; 1. detectedSignals の数 n で等分（1/n ずつ）&amp;#10; 2. currentPositions と合算した必要証拠金が&amp;#10;    balance から導く許容額を超える場合は&amp;#10;    維持率制約でスケールダウン&amp;#10; 3. 合計 = 1.0 の不変条件を保って返す&amp;#10;--&amp;#10;{無知に対する最適解（DeMiguel 2009）}&amp;#10;{Kelly 誤差ペナルティも小さい}\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#d5e8d4;strokeColor=none;fontSize=11;fontColor=#000000;\&quot; parent=\&quot;equalWeight\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;45\&quot; width=\&quot;640\&quot; height=\&quot;235\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;arrCtxDetected\&quot; value=\&quot;detectedSignals\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=diamond;endFill=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.7;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;allocCtx\&quot; target=\&quot;detectedSig\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;arrCtxPositions\&quot; value=\&quot;currentPositions\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=diamond;endFill=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.9;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;allocCtx\&quot; target=\&quot;positions\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;arrCtxBalance\&quot; value=\&quot;balance\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=diamond;endFill=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.3;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;allocCtx\&quot; target=\&quot;balanceRef\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;arrLotAllocRatio\&quot; value=\&quot;ratioOf returns\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#666666;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=0.278;exitY=0.003;exitDx=0;exitDy=0;exitPerimeter=0;\&quot; parent=\&quot;1\&quot; source=\&quot;lotAlloc\&quot; target=\&quot;ratio\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;&gt;\n                        &lt;Array as=\&quot;points\&quot;&gt;\n                            &lt;mxPoint x=\&quot;213\&quot; y=\&quot;344\&quot;/&gt;\n                            &lt;mxPoint x=\&quot;213\&quot; y=\&quot;331\&quot;/&gt;\n                            &lt;mxPoint x=\&quot;210\&quot; y=\&quot;331\&quot;/&gt;\n                        &lt;/Array&gt;\n                        &lt;mxPoint x=\&quot;196\&quot; y=\&quot;370\&quot; as=\&quot;sourcePoint\&quot;/&gt;\n                    &lt;/mxGeometry&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;arrPolicyInput\&quot; value=\&quot;input\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#666666;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.885;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitPerimeter=0;\&quot; parent=\&quot;1\&quot; source=\&quot;policyIf\&quot; target=\&quot;allocCtx\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;arrPolicyReturns\&quot; value=\&quot;returns\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#666666;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.25;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;policyIf\&quot; target=\&quot;lotAlloc\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;&gt;\n                        &lt;Array as=\&quot;points\&quot;&gt;\n                            &lt;mxPoint x=\&quot;337\&quot; y=\&quot;660\&quot;/&gt;\n                        &lt;/Array&gt;\n                    &lt;/mxGeometry&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;arrImplEqual\&quot; value=\&quot;implements\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=0;dashed=1;strokeColor=#444444;strokeWidth=2;labelBackgroundColor=#ffffff;fontSize=11;fontColor=#000000;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;equalWeight\&quot; target=\&quot;policyIf\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n            &lt;/root&gt;\n        &lt;/mxGraphModel&gt;\n    &lt;/diagram&gt;\n&lt;/mxfile&gt;&quot;}"></div>
+  <p class="small" style="text-align:right;color:var(--muted);margin:4px 0 0;">↑ ズーム・フルスクリーン・drawio で開く はツールバーから</p>
+</div>
+
+<div class="class-card" id="c-ap">
+<h3>AllocationPolicy <span class="class-layer">domain (interface)</span></h3>
+<p><strong>「検知された戦略シグナル → 配分比率」を決めるドメインサービスの interface。</strong></p>
+
+<h4>なぜ interface?</h4>
+<p>配分ロジックは将来複数のバージョンが並立する想定:</p>
+<ul>
+  <li>初期: <code>EqualWeightAllocationPolicy</code>（等ウェイト）</li>
+  <li>将来: <code>FixedRatioAllocationPolicy</code>（固定比率、<a href="https://github.com/Sina-TehraniFard/luchida/issues/120" class="anchor-link">#120</a>）</li>
+  <li>将来: <code>RiskBudgetedAllocationPolicy</code>（リスクパリティ、<a href="https://github.com/Sina-TehraniFard/luchida/issues/121" class="anchor-link">#121</a>）</li>
+  <li>将来: <code>ConvictionWeightedAllocationPolicy</code>（ConvictionScore ベース、#57）</li>
+</ul>
+
+<p>使う側（PositionManager）は interface だけ知っていれば良く、実装を差し替えることで全く違うロジックに変えられます。</p>
+
+<h4>メソッド</h4>
+<pre>interface AllocationPolicy {
+  allocate(context: AllocationContext): LotAllocation;
+}</pre>
+
+<p>入力は <code>AllocationContext</code>（検知シグナル + 現ポジション + 残高）、出力は <code>LotAllocation</code>（配分結果）。</p>
+</div>
+
+<div class="class-card" id="c-la">
+<h3>LotAllocation <span class="class-layer">domain (VO)</span></h3>
+<p><strong>配分の「結果」を表す値オブジェクト。</strong></p>
+
+<h4>なぜ AllocationPolicy と別?</h4>
+<p>「どう決めるか（ロジック）」と「決まった結果（値）」は別物。1 つのクラスに押し込むと、結果を使うだけのコード（ログ出力、UI 表示）までロジックに依存してしまう。分けることで、値だけを使い回せるようにしています。</p>
+
+<h4>不変条件</h4>
+<ul>
+  <li>配分比率の合計は必ず 1.0（または全戦略が抑制される場合 0.0）</li>
+  <li>各比率は 0.0 〜 1.0</li>
+  <li>一度生成されたら変更不可</li>
+</ul>
+
+<h4>Map を外に出さない</h4>
+<pre>// ❌ 悪い例
+class LotAllocation {
+  constructor(public readonly ratios: Map&lt;StrategyName, Ratio&gt;) {}
+}
+// 外から ratios.set() で改変できてしまう
+
+// ✅ 良い例
+class LotAllocation {
+  private constructor(
+    private readonly ratios: ReadonlyMap&lt;StrategyName, Ratio&gt;
+  ) {}
+  ratioOf(s: StrategyName): Ratio { ... }
+  isSuppressed(s: StrategyName): boolean { ... }
+}</pre>
+
+<p>内部構造を外に見せず、振る舞い（ratioOf, isSuppressed）で問い合わせる形にすることで、改変を防ぎつつ表現力を確保します。</p>
+</div>
+
+
+<h3 id="6c">6c. エントリー発注の流れ（図 C）</h3>
+
+<div class="embedded-diagram" id="diagram-composition-entry-flow">
+  <div class="diagram-label"><strong>図 C: エントリー発注フロー</strong> — <span class="small">composition-entry-flow.drawio</span></div>
+  <p class="small" style="margin:4px 0 10px;color:var(--muted);">application 層を中心にした発注経路。PositionManager → AllocationPolicy → PositionSizingService → EntryQueue → EntryExecution → Broker。</p>
+  <div class="mxgraph" style="max-width:100%;margin:0 0 8px;border:1px solid var(--border);border-radius:8px;background:white;" data-mxgraph="{&quot;highlight&quot;: &quot;#2563eb&quot;, &quot;nav&quot;: true, &quot;resize&quot;: true, &quot;toolbar&quot;: &quot;zoom layers lightbox&quot;, &quot;edit&quot;: &quot;_blank&quot;, &quot;xml&quot;: &quot;&lt;mxfile host=\&quot;65bd71144e\&quot;&gt;\n    &lt;diagram name=\&quot;Composition - Entry Flow\&quot; id=\&quot;pm-comp-entry\&quot;&gt;\n        &lt;mxGraphModel dx=\&quot;1460\&quot; dy=\&quot;786\&quot; grid=\&quot;0\&quot; gridSize=\&quot;10\&quot; guides=\&quot;1\&quot; tooltips=\&quot;1\&quot; connect=\&quot;1\&quot; arrows=\&quot;1\&quot; fold=\&quot;1\&quot; page=\&quot;0\&quot; pageScale=\&quot;1\&quot; pageWidth=\&quot;2000\&quot; pageHeight=\&quot;1400\&quot; math=\&quot;0\&quot; shadow=\&quot;0\&quot;&gt;\n            &lt;root&gt;\n                &lt;mxCell id=\&quot;0\&quot;/&gt;\n                &lt;mxCell id=\&quot;1\&quot; parent=\&quot;0\&quot;/&gt;\n                &lt;mxCell id=\&quot;bg\&quot; value=\&quot;\&quot; style=\&quot;whiteSpace=wrap;html=1;fontColor=#333333;fillColor=#f5f5f5;strokeColor=#666666;labelBackgroundColor=#ffffff;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;10\&quot; y=\&quot;10\&quot; width=\&quot;1980\&quot; height=\&quot;1350\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;title\&quot; value=\&quot;PositionManager 構成図 — エントリーフロー\&quot; style=\&quot;text;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;30\&quot; y=\&quot;20\&quot; width=\&quot;1300\&quot; height=\&quot;36\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;subtitle\&quot; value=\&quot;PositionManager を頂点にトップダウンで組み立て。決済・adapter 実装は別図（composition-exit-and-ports）\&quot; style=\&quot;text;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=0;fontColor=#555555;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;30\&quot; y=\&quot;56\&quot; width=\&quot;1300\&quot; height=\&quot;22\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;layerApp\&quot; value=\&quot;application 層\&quot; style=\&quot;shape=mxgraph.basic.rect;fillColor=#e6f2ff;strokeColor=#99c2ff;fontSize=11;fontStyle=1;verticalAlign=top;spacingTop=4;rounded=0;fontColor=#555555;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;30\&quot; y=\&quot;100\&quot; width=\&quot;1360\&quot; height=\&quot;760\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;layerDomain\&quot; value=\&quot;domain 層（参照のみ）\&quot; style=\&quot;shape=mxgraph.basic.rect;fillColor=#fff2e6;strokeColor=#ffb380;fontSize=11;fontStyle=1;verticalAlign=top;spacingTop=4;rounded=0;fontColor=#555555;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;30\&quot; y=\&quot;880\&quot; width=\&quot;1360\&quot; height=\&quot;160\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;positionManager\&quot; value=\&quot;PositionManager&amp;#10;（action 層の組み立て役）\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=45;strokeWidth=2;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;480\&quot; y=\&quot;130\&quot; width=\&quot;460\&quot; height=\&quot;140\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;positionManagerContent\&quot; value=\&quot;- allocationPolicy: AllocationPolicy&amp;#10;- sizingService: PositionSizingService&amp;#10;- entryQueue: EntryQueue&amp;#10;- positionRepository: PositionRepository&amp;#10;--&amp;#10;+ onSignals(detected: DetectedSignals): void\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#dae8fc;strokeColor=none;fontSize=11;fontColor=#000000;\&quot; parent=\&quot;positionManager\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;45\&quot; width=\&quot;460\&quot; height=\&quot;95\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;allocPolicyRef\&quot; value=\&quot;AllocationPolicy&amp;#10;（別図: allocation-policy.drawio）\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=40;fillColor=#f5f5f5;strokeColor=#999999;fontSize=11;fontColor=#555555;dashed=1;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;70\&quot; y=\&quot;330\&quot; width=\&quot;290\&quot; height=\&quot;120\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;allocPolicyRefContent\&quot; value=\&quot;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&amp;#10;+ allocate(ctx): LotAllocation&amp;#10;{純粋ドメインサービス}\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#f5f5f5;strokeColor=none;fontSize=10;fontColor=#555555;\&quot; parent=\&quot;allocPolicyRef\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;40\&quot; width=\&quot;290\&quot; height=\&quot;80\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;sizingService\&quot; value=\&quot;PositionSizingService&amp;#10;（旧 DynamicLotCalculator）\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=40;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;390\&quot; y=\&quot;330\&quot; width=\&quot;310\&quot; height=\&quot;160\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;sizingServiceContent\&quot; value=\&quot;- balancePort: BalancePort&amp;#10;- ratePort: RatePort&amp;#10;- lotPolicy: LotPolicy&amp;#10;- fallbackBalance: Balance&amp;#10;--&amp;#10;+ execute(pair): Lot\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#dae8fc;strokeColor=none;fontSize=11;fontColor=#000000;\&quot; parent=\&quot;sizingService\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;40\&quot; width=\&quot;310\&quot; height=\&quot;120\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;entryQueue\&quot; value=\&quot;EntryQueue&amp;#10;（POST 1秒1件制限 + 3秒鮮度）\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=40;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;730\&quot; y=\&quot;330\&quot; width=\&quot;310\&quot; height=\&quot;160\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;entryQueueContent\&quot; value=\&quot;- entryExecution: EntryExecution&amp;#10;- freshnessTtlMs: number = 3000&amp;#10;--&amp;#10;+ enqueue(cmd: EntryCommand): void&amp;#10;+ start(): void  // 1 req/sec で pop\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#dae8fc;strokeColor=none;fontSize=11;fontColor=#000000;\&quot; parent=\&quot;entryQueue\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;40\&quot; width=\&quot;310\&quot; height=\&quot;120\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;posRepo\&quot; value=\&quot;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&amp;#10;PositionRepository\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;1070\&quot; y=\&quot;330\&quot; width=\&quot;290\&quot; height=\&quot;140\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;posRepoContent\&quot; value=\&quot;+ register(position): Promise&amp;lt;void&amp;gt;&amp;#10;+ update(position): Promise&amp;lt;void&amp;gt;&amp;#10;+ openPositions(): Promise&amp;lt;OpenPositions&amp;gt;&amp;#10;{(pair, strategy) OPEN 部分ユニーク}\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=10;fontColor=#000000;\&quot; parent=\&quot;posRepo\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;45\&quot; width=\&quot;290\&quot; height=\&quot;95\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;balancePort\&quot; value=\&quot;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&amp;#10;BalancePort\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;263\&quot; y=\&quot;553\&quot; width=\&quot;249\&quot; height=\&quot;140\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;balancePortContent\&quot; value=\&quot;+ current(): Balance | null   // キャッシュ OK&amp;#10;+ freshNow(): Balance | null  // 発注直前バイパス&amp;#10;{null は application 層で fallback}\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=10;fontColor=#000000;\&quot; parent=\&quot;balancePort\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;45\&quot; width=\&quot;249\&quot; height=\&quot;95\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;ratePort\&quot; value=\&quot;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&amp;#10;RatePort\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;561\&quot; y=\&quot;553\&quot; width=\&quot;256\&quot; height=\&quot;140\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;ratePortContent\&quot; value=\&quot;+ currentOf(pair: CurrencyPair): Rate&amp;#10;{取れない時は例外。null を返さない}\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=10;fontColor=#000000;\&quot; parent=\&quot;ratePort\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;45\&quot; width=\&quot;256\&quot; height=\&quot;95\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;entryExec\&quot; value=\&quot;EntryExecution&amp;#10;（エントリー執行）\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=40;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;730\&quot; y=\&quot;740\&quot; width=\&quot;310\&quot; height=\&quot;110\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;entryExecContent\&quot; value=\&quot;- broker: Broker&amp;#10;- positionRepository: PositionRepository&amp;#10;--&amp;#10;+ openPosition(cmd: EntryCommand): void\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#dae8fc;strokeColor=none;fontSize=11;fontColor=#000000;\&quot; parent=\&quot;entryExec\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;40\&quot; width=\&quot;310\&quot; height=\&quot;70\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;broker\&quot; value=\&quot;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&amp;#10;Broker\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;730\&quot; y=\&quot;920\&quot; width=\&quot;310\&quot; height=\&quot;100\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;brokerContent\&quot; value=\&quot;+ placeEntry(cmd): Promise&amp;lt;EntryResult&amp;gt;&amp;#10;+ placeExit(position): Promise&amp;lt;ExitResult&amp;gt;\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=10;fontColor=#000000;\&quot; parent=\&quot;broker\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;45\&quot; width=\&quot;310\&quot; height=\&quot;55\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;lotPolicyRef\&quot; value=\&quot;LotPolicy&amp;#10;（別図: value-objects-and-lot-policy.drawio）\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=40;fillColor=#fff2e6;strokeColor=#ffb380;fontSize=11;fontColor=#555555;dashed=1;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;70\&quot; y=\&quot;900\&quot; width=\&quot;290\&quot; height=\&quot;120\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;lotPolicyRefContent\&quot; value=\&quot;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&amp;#10;+ decide(input: LotDecisionInput): Lot&amp;#10;{純粋ドメインサービス}\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2e6;strokeColor=none;fontSize=10;fontColor=#555555;\&quot; parent=\&quot;lotPolicyRef\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;40\&quot; width=\&quot;290\&quot; height=\&quot;80\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;groupNotes\&quot; value=\&quot;設計のポイント\&quot; style=\&quot;shape=mxgraph.basic.rect;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=4;rounded=1;arcSize=4;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;1420\&quot; y=\&quot;100\&quot; width=\&quot;560\&quot; height=\&quot;1250\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;note1\&quot; value=\&quot;PositionManager が action 層の組み立て役&amp;#10;&amp;#10;・AllocationPolicy で配分決定&amp;#10;・PositionSizingService で各戦略の Lot 算出&amp;#10;・EntryQueue に EntryCommand を流す&amp;#10;&amp;#10;自分は「順序制御」と「材料の調達」に徹する。&amp;#10;計算や判断はドメインサービスに任せる。\&quot; style=\&quot;shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;1440\&quot; y=\&quot;140\&quot; width=\&quot;520\&quot; height=\&quot;220\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;note2\&quot; value=\&quot;PositionSizingService は I/O の組み立て役&amp;#10;&amp;#10;・BalancePort.current() ?? fallbackBalance&amp;#10;・RatePort.currentOf(pair) で Rate 取得&amp;#10;・LotPolicy.decide(LotDecisionInput) で計算&amp;#10;&amp;#10;値オブジェクトで束ね、純粋ドメインサービス&amp;#10;（LotPolicy）に渡す。I/O は application 層で完結。\&quot; style=\&quot;shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;1440\&quot; y=\&quot;380\&quot; width=\&quot;520\&quot; height=\&quot;230\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;note3\&quot; value=\&quot;BalancePort は 2 メソッド持つ&amp;#10;&amp;#10;・current()   : キャッシュ経由で OK&amp;#10;・freshNow() : 発注直前のキャッシュバイパス&amp;#10;&amp;#10;発注直前は最新残高で合計ロット上限を再評価する。&amp;#10;古い残高で二重建てすると証拠金オーバーの危険。\&quot; style=\&quot;shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;1440\&quot; y=\&quot;630\&quot; width=\&quot;520\&quot; height=\&quot;210\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;note4\&quot; value=\&quot;EntryQueue の責務&amp;#10;&amp;#10;・POST 1 秒 1 件制限を守る&amp;#10;・3 秒経過したシグナルは破棄&amp;#10;  （FX は鮮度が命、古値発注事故を防ぐ）&amp;#10;&amp;#10;単体テスト可能・差し替え可能な独立コンポーネント。&amp;#10;「POST 制約の遵守」は TradingSession の関心ではない。\&quot; style=\&quot;shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;1440\&quot; y=\&quot;860\&quot; width=\&quot;520\&quot; height=\&quot;230\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;note5\&quot; value=\&quot;PositionRepository の OPEN 部分ユニーク&amp;#10;&amp;#10;・(pair, strategy_name) で OPEN は 1 つだけ&amp;#10;・部分インデックス: WHERE status = &#x27;OPEN&#x27;&amp;#10;・CLOSED は何本あってもよい&amp;#10;&amp;#10;将来「同戦略で複数ポジション」に広げるのは&amp;#10;制約を緩和するだけで済む。\&quot; style=\&quot;shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;1440\&quot; y=\&quot;1110\&quot; width=\&quot;520\&quot; height=\&quot;220\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;ePM_Alloc\&quot; value=\&quot;uses\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.1;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;positionManager\&quot; target=\&quot;allocPolicyRef\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;ePM_Sizing\&quot; value=\&quot;uses\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;positionManager\&quot; target=\&quot;sizingService\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;ePM_Queue\&quot; value=\&quot;enqueue\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.7;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;positionManager\&quot; target=\&quot;entryQueue\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;ePM_Repo\&quot; value=\&quot;reads open\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.9;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;positionManager\&quot; target=\&quot;posRepo\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;eSizing_Balance\&quot; value=\&quot;uses\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;sizingService\&quot; target=\&quot;balancePort\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;eSizing_Rate\&quot; value=\&quot;uses\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.7;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;sizingService\&quot; target=\&quot;ratePort\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;eSizing_LotPolicy\&quot; value=\&quot;uses\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;sizingService\&quot; target=\&quot;lotPolicyRef\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;&gt;\n                        &lt;Array as=\&quot;points\&quot;&gt;\n                            &lt;mxPoint x=\&quot;390\&quot; y=\&quot;479\&quot;/&gt;\n                            &lt;mxPoint x=\&quot;215\&quot; y=\&quot;479\&quot;/&gt;\n                        &lt;/Array&gt;\n                    &lt;/mxGeometry&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;eQueue_Exec\&quot; value=\&quot;executes\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;entryQueue\&quot; target=\&quot;entryExec\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;&gt;\n                        &lt;Array as=\&quot;points\&quot;&gt;\n                            &lt;mxPoint x=\&quot;885\&quot; y=\&quot;681\&quot;/&gt;\n                            &lt;mxPoint x=\&quot;885\&quot; y=\&quot;681\&quot;/&gt;\n                        &lt;/Array&gt;\n                    &lt;/mxGeometry&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;eExec_Broker\&quot; value=\&quot;places\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;entryExec\&quot; target=\&quot;broker\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;eExec_Repo\&quot; value=\&quot;register\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;entryExec\&quot; target=\&quot;posRepo\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n            &lt;/root&gt;\n        &lt;/mxGraphModel&gt;\n    &lt;/diagram&gt;\n&lt;/mxfile&gt;&quot;}"></div>
+  <p class="small" style="text-align:right;color:var(--muted);margin:4px 0 0;">↑ ズーム・フルスクリーン・drawio で開く はツールバーから</p>
+</div>
+
+<div class="class-card" id="c-pm">
+<h3>PositionManager <span class="class-layer">application</span></h3>
+<p><strong>複数戦略の同時稼働を束ねる司令塔。今回新しく作る中心部品。</strong></p>
+
+<h4>なぜ必要?</h4>
+<p>今までは戦略が 1 つだったので、<code>TradingSession</code> が直接 <code>EntryRule</code> を呼んで <code>EntryExecution</code> に渡していました。複数戦略になると:</p>
+<ul>
+  <li>複数 Rule が同時にシグナルを出した時の調整が必要</li>
+  <li>戦略ごとに配分を決めないといけない</li>
+  <li>発注順序を制御する必要がある</li>
+</ul>
+<p>これらを 1 箇所にまとめる部品が PositionManager です。</p>
+
+<h4>依存するもの</h4>
+<ul>
+  <li><code>AllocationPolicy</code>（配分ロジック）</li>
+  <li><code>PositionSizingService</code>（ロット計算）</li>
+  <li><code>EntryQueue</code>（発注順序制御）</li>
+  <li><code>PositionRepository</code>（ポジション取得・保存）</li>
+</ul>
+
+<h4>なぜ application 層?</h4>
+<p>ドメインの「判断」ではなく、「部品を組み合わせてユースケースを実現する組み立て役」だから。判断ロジックそのもの（どう配分するか）は domain（AllocationPolicy）に委譲し、PositionManager は組み立てに徹します。</p>
+</div>
+
+<div class="class-card" id="c-pss">
+<h3>PositionSizingService <span class="class-layer">application</span></h3>
+<p><strong>残高取得 → LotPolicy 呼び出しの組み立て役。</strong></p>
+
+<h4>なぜこのクラスが必要?</h4>
+<p>LotPolicy は純粋ドメインサービスなので、<strong>残高の取り方を知らない</strong>。誰かが「残高を取ってきて、レートを取ってきて、LotPolicy に渡す」という組み立てをしないといけない。これを担うのが PositionSizingService。</p>
+
+<h4>コード骨子</h4>
+<pre>class PositionSizingService {
+  constructor(
+    private readonly balancePort: BalancePort,
+    private readonly ratePort: RatePort,
+    private readonly lotPolicy: LotPolicy,
+    private readonly fallbackBalance: Balance,  // CAPITAL 由来の予備値
+  ) {}
+
+  execute(pair: CurrencyPair): Lot {
+    // ① 残高取得（失敗したら予備）
+    const balance = this.balancePort.current() ?? this.fallbackBalance;
+    // ② レート取得
+    const rate = this.ratePort.currentOf(pair);
+    // ③ 入力を束ねて LotPolicy に渡す
+    return this.lotPolicy.decide(
+      new LotDecisionInput(pair, balance, rate, MaintenanceRatio.of(1.4))
+    );
+  }
+}</pre>
+
+<h4>なぜ "Position Sizing"?</h4>
+<p>FX 業界用語。「ポジションサイズ（どれだけのロットで建てるか）をどう決めるかという判断」を総称する言葉。<code>LotCalculator</code> のような汎用語より意図が伝わります。</p>
+</div>
+
+<div class="class-card" id="c-eq">
+<h3>EntryQueue <span class="class-layer">application</span></h3>
+<p><strong>発注リクエストの順序制御。POST 1 秒 1 件制限の遵守と、古いシグナルの破棄。</strong></p>
+
+<h4>なぜ独立した部品?</h4>
+<p>発注間隔の制御は PositionManager の関心事ではない。PositionManager は「配分を決めて発注指示を出す」までが仕事で、その指示を「いつ実際に API に送るか」は別の論点。分離することで、両者を独立してテストできます。</p>
+
+<h4>主要メソッド</h4>
+<ul>
+  <li><code>enqueue(command: EntryCommand, submittedAt: Instant)</code> — 発注指示を追加</li>
+  <li><code>drain()</code> — 1 秒 1 件ペースで EntryExecution を呼ぶ（内部的に timer で動く）</li>
+</ul>
+
+<h4>古いシグナルの破棄</h4>
+<p>submittedAt から 3 秒経過した指示は Queue 内で破棄。FX は価格変動が速く、古い価格ベースのシグナルで発注するのは損な行為。</p>
+</div>
+
+
+<h3 id="6d">6d. 決済フローと port / adapter（図 D）</h3>
+
+<div class="embedded-diagram" id="diagram-composition-exit-and-ports">
+  <div class="diagram-label"><strong>図 D: 決済フロー + port / adapter 対応</strong> — <span class="small">composition-exit-and-ports.drawio</span></div>
+  <p class="small" style="margin:4px 0 10px;color:var(--muted);">左レーンに TradingSession ベースの決済経路。右レーンに全 port と infrastructure 側の実装関係。</p>
+  <div class="mxgraph" style="max-width:100%;margin:0 0 8px;border:1px solid var(--border);border-radius:8px;background:white;" data-mxgraph="{&quot;highlight&quot;: &quot;#2563eb&quot;, &quot;nav&quot;: true, &quot;resize&quot;: true, &quot;toolbar&quot;: &quot;zoom layers lightbox&quot;, &quot;edit&quot;: &quot;_blank&quot;, &quot;xml&quot;: &quot;&lt;mxfile host=\&quot;65bd71144e\&quot;&gt;\n    &lt;diagram name=\&quot;Composition - Exit Flow &amp;amp; Ports\&quot; id=\&quot;pm-comp-exit-ports\&quot;&gt;\n        &lt;mxGraphModel dx=\&quot;1920\&quot; dy=\&quot;1400\&quot; grid=\&quot;0\&quot; gridSize=\&quot;10\&quot; guides=\&quot;1\&quot; tooltips=\&quot;1\&quot; connect=\&quot;1\&quot; arrows=\&quot;1\&quot; fold=\&quot;1\&quot; page=\&quot;0\&quot; pageScale=\&quot;1\&quot; pageWidth=\&quot;2000\&quot; pageHeight=\&quot;1400\&quot; math=\&quot;0\&quot; shadow=\&quot;0\&quot;&gt;\n            &lt;root&gt;\n                &lt;mxCell id=\&quot;0\&quot;/&gt;\n                &lt;mxCell id=\&quot;1\&quot; parent=\&quot;0\&quot;/&gt;\n                &lt;mxCell id=\&quot;bg\&quot; value=\&quot;\&quot; style=\&quot;whiteSpace=wrap;html=1;fontColor=#333333;fillColor=#f5f5f5;strokeColor=#666666;labelBackgroundColor=#ffffff;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;10\&quot; y=\&quot;10\&quot; width=\&quot;1980\&quot; height=\&quot;1350\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;title\&quot; value=\&quot;PositionManager 構成図 — 決済フロー + Port / Adapter\&quot; style=\&quot;text;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;30\&quot; y=\&quot;20\&quot; width=\&quot;1400\&quot; height=\&quot;36\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;subtitle\&quot; value=\&quot;左レーン=決済フロー ／ 右レーン=port⇔adapter 実装関係（2 レーンを独立に配置して交差を抑える）\&quot; style=\&quot;text;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=12;fontStyle=0;fontColor=#555555;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;30\&quot; y=\&quot;56\&quot; width=\&quot;1400\&quot; height=\&quot;22\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n\n                &lt;!-- ====== レーン帯 ====== --&gt;\n                &lt;mxCell id=\&quot;laneExit\&quot; value=\&quot;左レーン: 決済フロー\&quot; style=\&quot;shape=mxgraph.basic.rect;fillColor=#e6f2ff;strokeColor=#99c2ff;fontSize=12;fontStyle=1;verticalAlign=top;spacingTop=4;rounded=0;fontColor=#555555;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;30\&quot; y=\&quot;100\&quot; width=\&quot;720\&quot; height=\&quot;1200\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;lanePorts\&quot; value=\&quot;右レーン: Port → Adapter 実装\&quot; style=\&quot;shape=mxgraph.basic.rect;fillColor=#f5e6ff;strokeColor=#c299ff;fontSize=12;fontStyle=1;verticalAlign=top;spacingTop=4;rounded=0;fontColor=#555555;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;780\&quot; y=\&quot;100\&quot; width=\&quot;640\&quot; height=\&quot;1200\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n\n                &lt;!-- ====== 左レーン: 決済フロー ====== --&gt;\n                &lt;!-- TradingSession (最上段) --&gt;\n                &lt;mxCell id=\&quot;tradingSession\&quot; value=\&quot;TradingSession&amp;#10;（市場監視ループ、複数 Rule を for 評価）\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=45;strokeWidth=2;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;70\&quot; y=\&quot;150\&quot; width=\&quot;640\&quot; height=\&quot;160\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;tradingSessionContent\&quot; value=\&quot;- exitRules: ExitRule[]&amp;#10;- exitExecution: ExitExecution&amp;#10;- positionRepository: PositionRepository&amp;#10;--&amp;#10;+ tick(): void&amp;#10;  for (pair, strategy) の openPosition について&amp;#10;    ExitRule を評価、成立なら ExitExecution 実行\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#dae8fc;strokeColor=none;fontSize=11;fontColor=#000000;\&quot; parent=\&quot;tradingSession\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;45\&quot; width=\&quot;640\&quot; height=\&quot;115\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n\n                &lt;!-- ExitRule(ref) 右側に小さく参照 --&gt;\n                &lt;mxCell id=\&quot;exitRuleRef\&quot; value=\&quot;ExitRule&amp;#10;（別図: rule-layer.drawio）\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=40;fillColor=#fff2e6;strokeColor=#ffb380;fontSize=11;fontColor=#555555;dashed=1;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;490\&quot; y=\&quot;370\&quot; width=\&quot;220\&quot; height=\&quot;100\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;exitRuleRefContent\&quot; value=\&quot;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&amp;#10;+ evaluate(position, market)&amp;#10;     : ExitCommand | null\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2e6;strokeColor=none;fontSize=10;fontColor=#555555;\&quot; parent=\&quot;exitRuleRef\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;40\&quot; width=\&quot;220\&quot; height=\&quot;60\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n\n                &lt;!-- Position(ref) 左側 --&gt;\n                &lt;mxCell id=\&quot;positionRef\&quot; value=\&quot;Position&amp;#10;（別図: value-objects-trading）\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=40;fillColor=#fff2e6;strokeColor=#ffb380;fontSize=11;fontColor=#555555;dashed=1;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;70\&quot; y=\&quot;370\&quot; width=\&quot;220\&quot; height=\&quot;100\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;positionRefContent\&quot; value=\&quot;id, pair, buySell, lot,&amp;#10;strategyName, entrySnapshot&amp;#10;{domain 集約}\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#fff2e6;strokeColor=none;fontSize=10;fontColor=#555555;\&quot; parent=\&quot;positionRef\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;40\&quot; width=\&quot;220\&quot; height=\&quot;60\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n\n                &lt;!-- ExitExecution --&gt;\n                &lt;mxCell id=\&quot;exitExec\&quot; value=\&quot;ExitExecution&amp;#10;（決済執行）\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=40;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;180\&quot; y=\&quot;560\&quot; width=\&quot;420\&quot; height=\&quot;130\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;exitExecContent\&quot; value=\&quot;- broker: Broker&amp;#10;- positionRepository: PositionRepository&amp;#10;--&amp;#10;+ closePosition(cmd: ExitCommand): void&amp;#10;  broker.placeExit → positionRepository.update\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#dae8fc;strokeColor=none;fontSize=11;fontColor=#000000;\&quot; parent=\&quot;exitExec\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;40\&quot; width=\&quot;420\&quot; height=\&quot;90\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n\n                &lt;!-- 左レーン下段: Broker / PositionRepository 参照 --&gt;\n                &lt;mxCell id=\&quot;brokerL\&quot; value=\&quot;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&amp;#10;Broker\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;70\&quot; y=\&quot;790\&quot; width=\&quot;300\&quot; height=\&quot;110\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;brokerLContent\&quot; value=\&quot;+ placeEntry(cmd): Promise&amp;lt;EntryResult&amp;gt;&amp;#10;+ placeExit(position): Promise&amp;lt;ExitResult&amp;gt;\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=10;fontColor=#000000;\&quot; parent=\&quot;brokerL\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;45\&quot; width=\&quot;300\&quot; height=\&quot;65\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n\n                &lt;mxCell id=\&quot;posRepoL\&quot; value=\&quot;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&amp;#10;PositionRepository\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;410\&quot; y=\&quot;790\&quot; width=\&quot;300\&quot; height=\&quot;110\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;posRepoLContent\&quot; value=\&quot;+ update(position): Promise&amp;lt;void&amp;gt;&amp;#10;+ findById(id): Promise&amp;lt;Position&amp;gt;&amp;#10;+ openPositions(): Promise&amp;lt;OpenPositions&amp;gt;\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=10;fontColor=#000000;\&quot; parent=\&quot;posRepoL\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;45\&quot; width=\&quot;300\&quot; height=\&quot;65\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n\n                &lt;!-- ====== 右レーン: port -&gt; adapter 実装関係 ====== --&gt;\n                &lt;!-- port (上段 4 つ) --&gt;\n                &lt;mxCell id=\&quot;balancePortR\&quot; value=\&quot;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&amp;#10;BalancePort\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;820\&quot; y=\&quot;150\&quot; width=\&quot;270\&quot; height=\&quot;120\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;balancePortRContent\&quot; value=\&quot;+ current(): Balance | null&amp;#10;+ freshNow(): Balance | null\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=10;fontColor=#000000;\&quot; parent=\&quot;balancePortR\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;45\&quot; width=\&quot;270\&quot; height=\&quot;75\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n\n                &lt;mxCell id=\&quot;ratePortR\&quot; value=\&quot;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&amp;#10;RatePort\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;820\&quot; y=\&quot;360\&quot; width=\&quot;270\&quot; height=\&quot;110\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;ratePortRContent\&quot; value=\&quot;+ currentOf(pair): Rate&amp;#10;{取れない時は例外}\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=10;fontColor=#000000;\&quot; parent=\&quot;ratePortR\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;45\&quot; width=\&quot;270\&quot; height=\&quot;65\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n\n                &lt;mxCell id=\&quot;brokerR\&quot; value=\&quot;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&amp;#10;Broker\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;820\&quot; y=\&quot;560\&quot; width=\&quot;270\&quot; height=\&quot;110\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;brokerRContent\&quot; value=\&quot;+ placeEntry / + placeExit\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=10;fontColor=#000000;\&quot; parent=\&quot;brokerR\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;45\&quot; width=\&quot;270\&quot; height=\&quot;65\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n\n                &lt;mxCell id=\&quot;posRepoR\&quot; value=\&quot;&amp;lt;&amp;lt;interface&amp;gt;&amp;gt;&amp;#10;PositionRepository\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=45;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;820\&quot; y=\&quot;790\&quot; width=\&quot;270\&quot; height=\&quot;110\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;posRepoRContent\&quot; value=\&quot;+ register / + update / + openPositions\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=10;fontColor=#000000;\&quot; parent=\&quot;posRepoR\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;45\&quot; width=\&quot;270\&quot; height=\&quot;65\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n\n                &lt;!-- adapter (右側、各 port と同じ y) --&gt;\n                &lt;mxCell id=\&quot;gmoBalanceAdapter\&quot; value=\&quot;GmoBalanceAdapter&amp;#10;（旧 BalanceCache）\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=40;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;1130\&quot; y=\&quot;150\&quot; width=\&quot;270\&quot; height=\&quot;180\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;gmoBalanceAdapterContent\&quot; value=\&quot;- restClient: GmoRestClient&amp;#10;- cacheTtlMs: number = 5000&amp;#10;--&amp;#10;+ current(): Balance | null&amp;#10;+ freshNow(): Balance | null&amp;#10;{内部 5 秒 TTL キャッシュ}&amp;#10;{失敗は null（CAPITAL に&amp;#10; フォールバックされる）}\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#d5e8d4;strokeColor=none;fontSize=10;fontColor=#000000;\&quot; parent=\&quot;gmoBalanceAdapter\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;40\&quot; width=\&quot;270\&quot; height=\&quot;140\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n\n                &lt;mxCell id=\&quot;gmoRateAdapter\&quot; value=\&quot;GmoRateAdapter\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=35;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;1130\&quot; y=\&quot;360\&quot; width=\&quot;270\&quot; height=\&quot;110\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;gmoRateAdapterContent\&quot; value=\&quot;- tickStream: TickStream&amp;#10;--&amp;#10;+ currentOf(pair): Rate\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#d5e8d4;strokeColor=none;fontSize=10;fontColor=#000000;\&quot; parent=\&quot;gmoRateAdapter\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;35\&quot; width=\&quot;270\&quot; height=\&quot;75\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n\n                &lt;mxCell id=\&quot;gmoBrokerAdapter\&quot; value=\&quot;GmoBrokerAdapter\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=35;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;1130\&quot; y=\&quot;560\&quot; width=\&quot;270\&quot; height=\&quot;110\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;gmoBrokerAdapterContent\&quot; value=\&quot;- restClient: GmoRestClient&amp;#10;--&amp;#10;+ placeEntry / + placeExit&amp;#10;{isHedgeable: true}\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#d5e8d4;strokeColor=none;fontSize=10;fontColor=#000000;\&quot; parent=\&quot;gmoBrokerAdapter\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;35\&quot; width=\&quot;270\&quot; height=\&quot;75\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n\n                &lt;mxCell id=\&quot;pgPosRepo\&quot; value=\&quot;PgPositionRepository\&quot; style=\&quot;swimlane;fontStyle=1;align=center;startSize=35;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;1130\&quot; y=\&quot;790\&quot; width=\&quot;270\&quot; height=\&quot;110\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;pgPosRepoContent\&quot; value=\&quot;- db: Pool  // PostgreSQL&amp;#10;--&amp;#10;+ register / + update / + openPositions&amp;#10;{(pair, strategy) OPEN 部分ユニーク}\&quot; style=\&quot;text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fillColor=#d5e8d4;strokeColor=none;fontSize=10;fontColor=#000000;\&quot; parent=\&quot;pgPosRepo\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry y=\&quot;35\&quot; width=\&quot;270\&quot; height=\&quot;75\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n\n                &lt;!-- ====== 付箋（右端） ====== --&gt;\n                &lt;mxCell id=\&quot;groupNotes\&quot; value=\&quot;設計のポイント\&quot; style=\&quot;shape=mxgraph.basic.rect;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontStyle=1;verticalAlign=top;spacingTop=4;rounded=1;arcSize=4;fontColor=#000000;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;1440\&quot; y=\&quot;100\&quot; width=\&quot;530\&quot; height=\&quot;1200\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n\n                &lt;mxCell id=\&quot;note1\&quot; value=\&quot;TradingSession は複数 Rule を for 評価&amp;#10;&amp;#10;・(pair, strategy_name) で openPosition を引く&amp;#10;・各ポジションに対応する ExitRule を評価&amp;#10;・成立したら ExitExecution.closePosition&amp;#10;&amp;#10;決済は完全自動。ユーザー承認不要。&amp;#10;条件成立 → 即執行（brief.md 3大権威）。\&quot; style=\&quot;shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;1460\&quot; y=\&quot;140\&quot; width=\&quot;490\&quot; height=\&quot;220\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n\n                &lt;mxCell id=\&quot;note2\&quot; value=\&quot;GmoBalanceAdapter の内部実装&amp;#10;&amp;#10;・5 秒 TTL キャッシュ&amp;#10;・API 失敗 → null を返す（隠蔽しない）&amp;#10;・application 層で CAPITAL にフォールバック&amp;#10;&amp;#10;キャッシュは実装詳細なのでクラス名には出さない。&amp;#10;BalanceCache → GmoBalanceAdapter に改名。\&quot; style=\&quot;shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;1460\&quot; y=\&quot;380\&quot; width=\&quot;490\&quot; height=\&quot;220\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n\n                &lt;mxCell id=\&quot;note3\&quot; value=\&quot;port は application 層直下に置く&amp;#10;&amp;#10;・domain は port を知らない&amp;#10;・adapter は port を実装する&amp;#10;・方向: application → port ← adapter&amp;#10;  （依存は内側へ、実装は外側から）&amp;#10;&amp;#10;Clean Architecture のオニオン構造を&amp;#10;ここで保っている。\&quot; style=\&quot;shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;1460\&quot; y=\&quot;620\&quot; width=\&quot;490\&quot; height=\&quot;230\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n\n                &lt;mxCell id=\&quot;note4\&quot; value=\&quot;PositionRepository の OPEN 部分ユニーク&amp;#10;&amp;#10;・(pair, strategy_name) で OPEN は 1 つだけ&amp;#10;・WHERE status = &amp;apos;OPEN&amp;apos; の部分インデックス&amp;#10;・CLOSED は何本あっても OK&amp;#10;&amp;#10;戦略ごとに独立したポジション管理。&amp;#10;制約緩和で将来「同戦略複数ポジション」に広げられる。\&quot; style=\&quot;shape=note;size=14;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;fontColor=#000000;align=left;spacingLeft=8;\&quot; parent=\&quot;1\&quot; vertex=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry x=\&quot;1460\&quot; y=\&quot;870\&quot; width=\&quot;490\&quot; height=\&quot;230\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n\n                &lt;!-- ====== エッジ ====== --&gt;\n                &lt;!-- 左レーン: TradingSession -&gt; ExitRule(ref), Position(ref) --&gt;\n                &lt;mxCell id=\&quot;eTS_ExitRule\&quot; value=\&quot;evaluates\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.8;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;tradingSession\&quot; target=\&quot;exitRuleRef\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;eTS_Position\&quot; value=\&quot;reads\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.2;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;tradingSession\&quot; target=\&quot;positionRef\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n\n                &lt;!-- TradingSession -&gt; ExitExecution (真下へ、中央) --&gt;\n                &lt;mxCell id=\&quot;eTS_ExitExec\&quot; value=\&quot;close\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;tradingSession\&quot; target=\&quot;exitExec\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n\n                &lt;!-- ExitExecution -&gt; Broker, PosRepo (下段 2 つへ) --&gt;\n                &lt;mxCell id=\&quot;eExit_Broker\&quot; value=\&quot;places\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;exitExec\&quot; target=\&quot;brokerL\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;eExit_Repo\&quot; value=\&quot;update\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=open;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0.7;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;exitExec\&quot; target=\&quot;posRepoL\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n\n                &lt;!-- 右レーン: adapter -&gt; port (implements, 水平) --&gt;\n                &lt;mxCell id=\&quot;eImpl_Balance\&quot; value=\&quot;implements\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=0;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;gmoBalanceAdapter\&quot; target=\&quot;balancePortR\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;eImpl_Rate\&quot; value=\&quot;implements\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=0;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;gmoRateAdapter\&quot; target=\&quot;ratePortR\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;eImpl_Broker\&quot; value=\&quot;implements\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=0;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;gmoBrokerAdapter\&quot; target=\&quot;brokerR\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n                &lt;mxCell id=\&quot;eImpl_PosRepo\&quot; value=\&quot;implements\&quot; style=\&quot;edgeStyle=orthogonalEdgeStyle;rounded=0;html=0;endArrow=block;endFill=0;dashed=1;strokeColor=#444444;labelBackgroundColor=#ffffff;fontSize=10;fontColor=#000000;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;\&quot; parent=\&quot;1\&quot; source=\&quot;pgPosRepo\&quot; target=\&quot;posRepoR\&quot; edge=\&quot;1\&quot;&gt;\n                    &lt;mxGeometry relative=\&quot;1\&quot; as=\&quot;geometry\&quot;/&gt;\n                &lt;/mxCell&gt;\n\n            &lt;/root&gt;\n        &lt;/mxGraphModel&gt;\n    &lt;/diagram&gt;\n&lt;/mxfile&gt;\n&quot;}"></div>
+  <p class="small" style="text-align:right;color:var(--muted);margin:4px 0 0;">↑ ズーム・フルスクリーン・drawio で開く はツールバーから</p>
+</div>
+
+<div class="class-card" id="c-broker">
+<h3>Broker <span class="class-layer">port</span></h3>
+<p><strong>発注（新規エントリー・決済）の契約を定める interface。</strong></p>
+
+<h4>なぜ port 層にあるのか?</h4>
+<p>発注は外部（GMO API）との通信です。application 層が直接 GMO API を叩くと、<strong>GMO 以外のブローカーに切り替えたい時</strong>や<strong>テストで偽物の発注を使いたい時</strong>に困ります。そのため「発注という契約」だけを port で定義し、実装は infrastructure で提供する構造にします。</p>
+
+<h4>なぜ Broker という名前?</h4>
+<p>FX 業界で「発注を取り次ぐ業者」を Broker と呼ぶから。<code>OrderClient</code> や <code>TradeApi</code> のような名前だと業界語彙から外れます。</p>
+
+<h4>典型的な使われ方</h4>
+<pre>class EntryExecution {
+  constructor(
+    private readonly broker: Broker,  // ← interface で受ける
+    ...
+  ) {}
+  async execute(cmd: EntryCommand) {
+    const result = await this.broker.placeEntry(cmd);
+    ...
+  }
+}</pre>
+</div>
+
+<div class="class-card" id="c-balanceport">
+<h3>BalancePort <span class="class-layer">port</span></h3>
+<p><strong>口座残高の取得を定める interface。</strong></p>
+
+<h4>なぜ必要?</h4>
+<p><code>PositionSizingService</code> がロット計算のために残高を知りたい。だが application 層から GMO API を直接叩くのは禁止（Clean Architecture 違反）。そのため「残高を取る契約」を port で定義。</p>
+
+<h4>2 つのメソッドを持つ理由</h4>
+<ul>
+  <li><code>current(): Balance | null</code> — 通常の問い合わせ。キャッシュされた値を返してよい。API 失敗時は null を返す</li>
+  <li><code>freshNow(): Balance</code> — 発注直前の最新値取得。キャッシュを無視して API から直接取る</li>
+</ul>
+
+<p>FX は価格変動が速いので、発注直前には最新残高で計算したい。一方で毎回 API を叩くとレートリミットに引っかかる。この使い分けを<strong>呼び出し側が明示的に選べる</strong>ように 2 メソッドにしました。</p>
+
+<h4>なぜ名前が BalancePort? BalanceCache じゃない?</h4>
+<p>「Cache（キャッシュ）」は実装手段を名前に含めてしまっています。port の役割は「残高取得の契約」なので、実装がキャッシュを使っていても使っていなくても、名前は役割で呼ぶべき。キャッシュは <code>GmoBalanceAdapter</code>（infrastructure 側）の内部事情として隠蔽します。</p>
+</div>
+
+<div class="class-card" id="c-positionrepo">
+<h3>PositionRepository <span class="class-layer">port</span></h3>
+<p><strong>ポジションの保存・取得を定める interface（Repository パターン）。</strong></p>
+
+<h4>なぜ Repository?</h4>
+<p>ドメイン駆動設計における <strong>Repository パターン</strong> の適用。「ポジションは集合として扱えて、追加・取り出し・更新ができる」という抽象を提供します。</p>
+
+<p>具体的には:</p>
+<ul>
+  <li><code>register(position)</code> — 新規ポジションを追加</li>
+  <li><code>openPositions()</code> — OPEN 状態のポジション全件を返す</li>
+  <li><code>findByPairAndStrategy(pair, strategy)</code> — (pair, strategy_name) で検索</li>
+  <li><code>update(position)</code> — 決済後の状態を反映</li>
+</ul>
+
+<p>使う側（application 層）は「DB テーブル」を知らず、「ポジション集合」を扱うように書けます。</p>
+
+<h4>実装は PgPositionRepository</h4>
+<p>infrastructure 層の <code>PgPositionRepository</code> が PostgreSQL + Drizzle で実装。「<code>(pair, strategy_name)</code> の OPEN 部分ユニーク制約」もこの実装の責務。</p>
+</div>
+
+<div class="class-card" id="c-gba">
+<h3>GmoBalanceAdapter <span class="class-layer">infrastructure</span></h3>
+<p><strong>GMO FX API で口座残高を取得する実装。BalancePort の実装クラス。</strong></p>
+
+<h4>なぜ名前が "Adapter"?</h4>
+<p>Ports &amp; Adapters パターンの「Adapter」。port（契約）と外部システム（GMO API）の間を仲介する変換役、という意味。</p>
+
+<h4>内部の実装詳細</h4>
+<ul>
+  <li>5 秒の TTL キャッシュ — API のレートリミット対策</li>
+  <li>CAPITAL フォールバック — API 失敗時は環境変数値を返す</li>
+  <li>GMO API <code>/private/v1/account/assets</code> を呼ぶ</li>
+  <li>HMAC-SHA256 署名生成</li>
+</ul>
+
+<h4>なぜ名前にキャッシュを出さない?</h4>
+<p>キャッシュは実装手段で、役割ではないから。将来「キャッシュをやめる」「別の方法に変える」といった時に、クラス名を変えずに済みます。名前は <strong>"何をやるか"（Balance を取る）</strong> と <strong>"どこと話すか"（Gmo と）</strong> の 2 軸で付けています。</p>
+</div>
+
+<div class="class-card" id="c-gbr">
+<h3>GmoBrokerAdapter <span class="class-layer">infrastructure</span></h3>
+<p><strong>GMO FX API で発注する実装。Broker の実装クラス。</strong></p>
+
+<h4>役割</h4>
+<ul>
+  <li><code>EntryCommand</code> を GMO API のリクエスト形式に変換</li>
+  <li>HMAC-SHA256 署名</li>
+  <li>POST スロットリング（1 秒 1 件）</li>
+  <li>レスポンスを <code>EntryResult</code> に変換</li>
+</ul>
+
+<h4>EntryQueue との役割分担</h4>
+<p>POST 1 秒 1 件制限の遵守は、<code>EntryQueue</code>（上位の発注キュー）と <code>GmoBrokerAdapter</code> の両方に関わります。</p>
+<ul>
+  <li><strong>EntryQueue</strong>: 「発注指示の<strong>順序</strong>」を制御（古いシグナル破棄など）</li>
+  <li><strong>GmoBrokerAdapter</strong>: 「実際の API 呼び出しの<strong>間隔</strong>」を保証（失敗時のリトライ制御含む）</li>
+</ul>
+<p>二重にしているのは冗長ではなく、<strong>責任を階層化</strong>しているため。EntryQueue は業務レベルの制御、Adapter は技術レベルの保証。</p>
+</div>
+
+<script type="text/javascript" src="https://viewer.diagrams.net/js/viewer-static.min.js"></script>
+</section>
+
+
+<section id="whys">
+<h2>7. 典型的な「なぜ?」への答え</h2>
+<p class="lead">クラス図を見て湧く疑問の定番に、まとめて答えます。</p>
+
+<p class="q">なぜインターフェースを挟むのか? 直接クラスを使えばよくない?</p>
+<p><strong>テスト容易性</strong>と<strong>将来の差し替え</strong>のため。直接実装クラスに依存すると、テストで偽物を使えず、実装を変えたい時に使う側のコードも書き換えないといけません。interface を挟むと、使う側のコードを変えずに中身を差し替えられます。</p>
+
+<p class="q">なぜ <code>LotPolicy</code> と <code>AllocationPolicy</code> の両方がいるのか? 似たような名前で紛らわしい</p>
+<p>責任範囲が違います。<code>AllocationPolicy</code> は「複数戦略の<strong>間</strong>での配分（どの戦略に何割?）」、<code>LotPolicy</code> は「個別発注の<strong>中</strong>での計算（Lot は何?）」。前者は戦略の司令塔レベル、後者は個別ロット決定レベル。紛らわしいけど、どちらも "Policy" という名前がふさわしい（判断方針のクラス）ので、修飾語で区別しています。</p>
+
+<p class="q">domain 層に興味があるクラスを置いたけど、外部 API も呼びたい。どうすれば?</p>
+<p>domain 層では呼ばず、<strong>application 層に組み立て役を置いて</strong>、そこから port 経由で外部 API を呼びます。今回の <code>PositionSizingService</code> がまさにそれ。domain（<code>LotPolicy</code>）は純粋、application（<code>PositionSizingService</code>）が組み立て、infrastructure（<code>GmoBalanceAdapter</code>）が実際の通信、という三段構造です。</p>
+
+<p class="q">どのクラスから読み始めればいい?</p>
+<p><strong>PositionManager</strong> から。今回の中心部品で、他の主要クラスは全部 PositionManager が直接・間接に使います。そこから枝を辿って <code>AllocationPolicy</code> → <code>LotAllocation</code>、<code>PositionSizingService</code> → <code>LotPolicy</code>、<code>EntryQueue</code> → <code>EntryExecution</code> と読むと流れが掴みやすいです。</p>
+
+<p class="q">この設計、過剰じゃない? もっとシンプルにできないの?</p>
+<p>感じ方はわかります。「1 つのクラスにまとめて書けば短いのに」と思うかもしれません。でも Luchida は「<strong>年末 200 万円運用のガチプロダクト</strong>」で、数年先まで保守・拡張する想定。今シンプルに書くと、将来「戦略を追加する」「配分ロジックを変える」「GMO 以外に対応する」「テストを書く」といった変更の度に、あちこち書き換える羽目になります。層を分けておくと、変更の影響範囲を限定できます。<strong>短期の書きやすさより長期の変更しやすさ</strong>を優先した設計です。</p>
+
+<p class="q">付箋（黄色のメモ）の内容はどこまで信じていい?</p>
+<p>クラス図内の付箋は「<strong>設計の意図</strong>」を表しています。コードよりもまず付箋を読むと、なぜそういう設計になっているかが掴みやすい。内容に疑問があれば、<code>brief.md</code>（設計ブリーフ）と突き合わせてください。brief.md が一次情報です。</p>
+</section>
+
+<section id="glossary">
+<h2>8. 用語集</h2>
+
+<table>
+  <tr><th>用語</th><th>説明</th></tr>
+  <tr><td>値オブジェクト（Value Object）</td><td>意味と制約を持った不変のデータの箱。<code>Balance</code> や <code>Rate</code> など</td></tr>
+  <tr><td>エンティティ（Entity）</td><td>ID で同一性が決まる、状態を持つオブジェクト。<code>Position</code> など</td></tr>
+  <tr><td>ドメインサービス（Domain Service）</td><td>複数の値オブジェクト / エンティティにまたがる判断ロジック。<code>LotPolicy</code>, <code>AllocationPolicy</code> など</td></tr>
+  <tr><td>アプリケーションサービス（Application Service）</td><td>ユースケースを組み立てる役。domain を呼び、port 経由で外部とやり取り。<code>PositionSizingService</code>, <code>EntryExecution</code> など</td></tr>
+  <tr><td>Port / Adapter</td><td>Clean Architecture のパターン。Port は外との契約（interface）、Adapter はその実装</td></tr>
+  <tr><td>Repository</td><td>エンティティの集合を扱う抽象。DB を隠蔽する</td></tr>
+  <tr><td>Specification パターン</td><td>条件を値オブジェクトとして表現する設計パターン。<code>SuppressionRule</code>（#120）で使う予定</td></tr>
+  <tr><td>ユビキタス言語</td><td>プロジェクトの全員が共通に使う言葉。コードとドキュメントで一貫させる</td></tr>
+  <tr><td>implements</td><td>「interface を実装する」関係。クラスが interface の契約を満たす</td></tr>
+  <tr><td>composition（合成）</td><td>「内部にフィールドとして持つ」関係。菱形 + 実線の矢印</td></tr>
+  <tr><td>dependency injection (DI)</td><td>使う側がクラスを自分で <code>new</code> せず、外から注入される方式。interface を使う前提</td></tr>
+  <tr><td>Clean Architecture</td><td>「依存は内側に向かう」層構造パターン。core（domain + application）を外部技術から守る</td></tr>
+  <tr><td>ユースケース</td><td>「〇〇をする」という 1 まとまりの業務処理。application 層で表現</td></tr>
+</table>
+</section>
+
+<div class="footer">
+  <p>このドキュメントはクラス図の補足資料です。設計の一次情報は <code>docs/design/position-manager/brief.md</code> を参照してください。</p>
+  <p>作成日: 2026-04-23 / 対象: Issue #51 PositionManager + 動的ロット</p>
+</div>
+
+</main>
+</div>
+</body>
+</html>

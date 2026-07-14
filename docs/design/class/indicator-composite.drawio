@@ -1,0 +1,157 @@
+<mxfile host="65bd71144e">
+    <diagram name="Indicator 統合インターフェース クラス図" id="indicator_composite">
+        <mxGraphModel dx="1163" dy="1383" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="bg" value="" style="whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;" parent="1" vertex="1">
+                    <mxGeometry x="8" y="-50" width="1400" height="900" as="geometry"/>
+                </mxCell>
+                <mxCell id="title" value="Indicator 統合インターフェース クラス図" style="text;align=center;verticalAlign=middle;fontSize=20;fontStyle=1;fontColor=#333;shadow=1;" parent="1" vertex="1">
+                    <mxGeometry x="16" y="-46" width="1383" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="domain_label" value="domain" style="text;align=left;verticalAlign=middle;fontSize=14;fontStyle=1;fontColor=#d6b656;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="4" width="80" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="adapter_label" value="adapter" style="text;align=left;verticalAlign=middle;fontSize=14;fontStyle=1;fontColor=#9673a6;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="630" width="80" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="indicator" value="&lt;&lt;interface&gt;&gt;&#10;Indicator" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#fff2cc;strokeColor=#d6b656;startSize=45;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="500" y="40" width="320" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="indicator_sep" value="" style="line;strokeColor=#d6b656;" parent="indicator" vertex="1">
+                    <mxGeometry y="45" width="320" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="indicator_methods" value="+ update(candle: Candle): void&#10;+ getValue(): number | undefined&#10;+ isReady(): boolean" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="indicator" vertex="1">
+                    <mxGeometry y="53" width="320" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="indicator_note" value="全指標を同じ方法で更新するためのインターフェース&#10;Composite パターン&#10;getValue() は各実装が固有の型を返す&#10;（SmaValue, number 等）" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="850" y="40" width="310" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="indicator_note_arr" style="strokeColor=#d6b656;dashed=1;endArrow=none;" parent="1" source="indicator_note" target="indicator" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="sma_indicator" value="SmaIndicator" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#fff2cc;strokeColor=#d6b656;startSize=30;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="100" y="240" width="300" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="sma_ind_attrs" value="- calculator: SmaCalculator" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="sma_indicator" vertex="1">
+                    <mxGeometry y="30" width="300" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="sma_ind_sep" value="" style="line;strokeColor=#d6b656;" parent="sma_indicator" vertex="1">
+                    <mxGeometry y="55" width="300" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="sma_ind_methods" value="+ update(candle: Candle): void&#10;+ getValue(): number | undefined&#10;+ isReady(): boolean" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="sma_indicator" vertex="1">
+                    <mxGeometry y="63" width="300" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="rsi_indicator" value="RsiIndicator" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#fff2cc;strokeColor=#d6b656;startSize=30;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="500" y="240" width="300" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="rsi_ind_attrs" value="- calculator: RsiCalculator" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="rsi_indicator" vertex="1">
+                    <mxGeometry y="30" width="300" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="rsi_ind_sep" value="" style="line;strokeColor=#d6b656;" parent="rsi_indicator" vertex="1">
+                    <mxGeometry y="55" width="300" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="rsi_ind_methods" value="+ update(candle: Candle): void&#10;+ getValue(): number | undefined&#10;+ isReady(): boolean" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="rsi_indicator" vertex="1">
+                    <mxGeometry y="63" width="300" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="2" style="edgeStyle=none;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="wick_indicator" target="bg">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="wick_indicator" value="WickIndicator" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#fff2cc;strokeColor=#d6b656;startSize=30;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="846" y="240" width="300" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="wick_ind_sep" value="" style="line;strokeColor=#d6b656;" parent="wick_indicator" vertex="1">
+                    <mxGeometry y="30" width="300" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="wick_ind_methods" value="+ update(candle: Candle): void&#10;+ getValue(): number | undefined&#10;+ isReady(): boolean" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="wick_indicator" vertex="1">
+                    <mxGeometry y="38" width="300" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="wick_note" value="ヒゲの検知は四則演算だけでできるので&#10;外部ライブラリ不要" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="898" y="190" width="190" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="wick_note_arr" style="strokeColor=#d6b656;dashed=1;endArrow=none;" parent="1" source="wick_note" target="wick_indicator" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_sma_ind" value="" style="endArrow=block;endFill=0;dashed=1;strokeColor=#d6b656;fontSize=11;" parent="1" source="sma_indicator" target="indicator" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_rsi_ind" value="" style="endArrow=block;endFill=0;dashed=1;strokeColor=#d6b656;fontSize=11;" parent="1" source="rsi_indicator" target="indicator" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_wick_ind" value="" style="endArrow=block;endFill=0;dashed=1;strokeColor=#d6b656;fontSize=11;" parent="1" source="wick_indicator" target="indicator" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="sma_calc" value="&lt;&lt;interface&gt;&gt;&#10;SmaCalculator" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#fff2cc;strokeColor=#d6b656;startSize=45;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="100" y="440" width="300" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="sma_calc_sep" value="" style="line;strokeColor=#d6b656;" parent="sma_calc" vertex="1">
+                    <mxGeometry y="45" width="300" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="sma_calc_methods" value="+ add(value: number): void&#10;+ replace(value: number): void&#10;+ isStable(): boolean&#10;+ getResult(): number | undefined" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="sma_calc" vertex="1">
+                    <mxGeometry y="53" width="300" height="75" as="geometry"/>
+                </mxCell>
+                <mxCell id="rsi_calc" value="&lt;&lt;interface&gt;&gt;&#10;RsiCalculator" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#fff2cc;strokeColor=#d6b656;startSize=45;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="500" y="440" width="300" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="rsi_calc_sep" value="" style="line;strokeColor=#d6b656;" parent="rsi_calc" vertex="1">
+                    <mxGeometry y="45" width="300" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="rsi_calc_methods" value="+ add(value: number): void&#10;+ isStable(): boolean&#10;+ getResult(): number | undefined" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="rsi_calc" vertex="1">
+                    <mxGeometry y="53" width="300" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="calc_note" value="計算方法の抽象&#10;実装は adapter 層の trading-signals が担う" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="326" y="375" width="280" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="calc_note_arr1" style="strokeColor=#d6b656;dashed=1;endArrow=none;" parent="1" source="calc_note" target="sma_calc" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="calc_note_arr2" style="strokeColor=#d6b656;dashed=1;endArrow=none;" parent="1" source="calc_note" target="rsi_calc" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_sma_use" value="uses" style="endArrow=open;endFill=0;dashed=1;strokeColor=#d6b656;fontSize=11;fontColor=#d6b656;fontStyle=2;" parent="1" source="sma_indicator" target="sma_calc" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_rsi_use" value="uses" style="endArrow=open;endFill=0;dashed=1;strokeColor=#d6b656;fontSize=11;fontColor=#d6b656;fontStyle=2;" parent="1" source="rsi_indicator" target="rsi_calc" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ts_sma_calc" value="TradingSignalsSmaCalculator" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#e1d5e7;strokeColor=#9673a6;startSize=30;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="100" y="670" width="300" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="ts_sma_calc_attrs" value="- sma: SMA（trading-signals）" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="ts_sma_calc" vertex="1">
+                    <mxGeometry y="30" width="300" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="ts_sma_calc_sep" value="" style="line;strokeColor=#9673a6;" parent="ts_sma_calc" vertex="1">
+                    <mxGeometry y="55" width="300" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="ts_sma_calc_methods" value="+ add(), replace(), isStable(), getResult()" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="ts_sma_calc" vertex="1">
+                    <mxGeometry y="63" width="300" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="ts_rsi_calc" value="TradingSignalsRsiCalculator" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#e1d5e7;strokeColor=#9673a6;startSize=30;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="500" y="670" width="300" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="ts_rsi_calc_attrs" value="- rsi: RSI（trading-signals）" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="ts_rsi_calc" vertex="1">
+                    <mxGeometry y="30" width="300" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="ts_rsi_calc_sep" value="" style="line;strokeColor=#9673a6;" parent="ts_rsi_calc" vertex="1">
+                    <mxGeometry y="55" width="300" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="ts_rsi_calc_methods" value="+ add(), isStable(), getResult()" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="ts_rsi_calc" vertex="1">
+                    <mxGeometry y="63" width="300" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_ts_sma_impl" value="" style="endArrow=block;endFill=0;dashed=1;strokeColor=#9673a6;fontSize=11;" parent="1" source="ts_sma_calc" target="sma_calc" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_ts_rsi_impl" value="" style="endArrow=block;endFill=0;dashed=1;strokeColor=#9673a6;fontSize=11;" parent="1" source="ts_rsi_calc" target="rsi_calc" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="access_note" value="Rule が指標値を取得する経路:&#10;&#10;Rule はコンストラクタで必要な Indicator を受け取る。&#10;例: RsiReversalEntryRule(rsi: RsiIndicator)&#10;例: SmaCrossEntryRule(shortSma: SmaIndicator,&#10;                     longSma: SmaIndicator)&#10;&#10;Rule は自分が必要な Indicator の getValue() を呼ぶ。&#10;IndicatorLedger は更新（warmUp, onCandleConfirmed）&#10;だけを担い、値の取得には関与しない。&#10;&#10;IndicatorValues は廃止。&#10;「全指標の寄せ集め」はドメインの概念ではない" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fff8e1;strokeColor=#f9a825;fontSize=11;fontColor=#5d4037;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="90" y="-30" width="380" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="layer_sep" value="" style="line;strokeColor=#999;dashed=1;strokeWidth=2;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="620" width="1360" height="10" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

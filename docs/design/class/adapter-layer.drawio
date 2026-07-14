@@ -1,0 +1,118 @@
+<mxfile host="app.diagrams.net" version="29.4.0">
+  <diagram name="Adapter層クラス図" id="adapter-layer">
+    <mxGraphModel dx="2078" dy="934" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bg" parent="1" style="whiteSpace=wrap;html=1;fontColor=#333333;fillColor=#f5f5f5;strokeColor=#666666;" value="" vertex="1">
+          <mxGeometry height="870" width="1332" x="-72" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="title" parent="1" style="text;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#000000;" value="Adapter層 クラス図" vertex="1">
+          <mxGeometry height="40" width="1324" x="-68" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="broker" parent="1" style="swimlane;fontStyle=1;align=center;startSize=45;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontColor=#000000;" value="&lt;&lt;interface&gt;&gt;&#xa;Broker" vertex="1">
+          <mxGeometry height="100" width="400" x="40" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="brokerMethods" parent="broker" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#dae8fc;strokeColor=none;fontSize=11;fontColor=#000000;" value="+ placeEntry(command: EntryCommand): Promise&lt;EntryResult&gt;&#xa;+ placeExit(position: Position): Promise&lt;ExitResult&gt;" vertex="1">
+          <mxGeometry height="55" width="400" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="marketDataPort" parent="1" style="swimlane;fontStyle=1;align=center;startSize=45;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontColor=#000000;" value="&lt;&lt;interface&gt;&gt;&#xa;MarketDataPort" vertex="1">
+          <mxGeometry height="120" width="400" x="470" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="marketDataPortMethods" parent="marketDataPort" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#dae8fc;strokeColor=none;fontSize=11;fontColor=#000000;" value="+ connect(): Promise&lt;void&gt;&#xa;+ disconnect(): Promise&lt;void&gt;&#xa;+ subscribe(onTick: (tick: Tick) =&gt; void): () =&gt; void" vertex="1">
+          <mxGeometry height="75" width="400" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="posRepo" parent="1" style="swimlane;fontStyle=1;align=center;startSize=45;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=13;fontColor=#000000;" value="&lt;&lt;interface&gt;&gt;&#xa;PositionRepository" vertex="1">
+          <mxGeometry height="140" width="380" x="900" y="70" as="geometry" />
+        </mxCell>
+        <mxCell id="posRepoMethods" parent="posRepo" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#dae8fc;strokeColor=none;fontSize=11;fontColor=#000000;" value="+ register(position: Position): Promise&lt;void&gt;&#xa;+ update(position: Position): Promise&lt;void&gt;&#xa;+ findById(id: PositionId): Promise&lt;Position&gt;&#xa;+ openPositions(): Promise&lt;OpenPositions&gt;" vertex="1">
+          <mxGeometry height="95" width="380" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="gmoBroker" parent="1" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontColor=#000000;" value="GmoBrokerAdapter" vertex="1">
+          <mxGeometry height="140" width="400" x="40" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="gmoBrokerContent" parent="gmoBroker" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=11;fontColor=#000000;" value="- restClient: GmoRestClient&#xa;--&#xa;+ placeEntry(command: EntryCommand): Promise&lt;EntryResult&gt;&#xa;+ placeExit(position: Position): Promise&lt;ExitResult&gt;" vertex="1">
+          <mxGeometry height="110" width="400" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="gmoMarketData" parent="1" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontColor=#000000;" value="GmoMarketDataAdapter" vertex="1">
+          <mxGeometry height="170" width="400" x="470" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="gmoMarketDataContent" parent="gmoMarketData" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=11;fontColor=#000000;" value="- wsClient: GmoWebSocketClient&#xa;--&#xa;+ connect(): Promise&lt;void&gt;&#xa;+ disconnect(): Promise&lt;void&gt;&#xa;+ subscribe(onTick: (tick: Tick) =&gt; void): () =&gt; void&#xa;+ onError(callback: (error: MarketDataError) =&gt; void): void" vertex="1">
+          <mxGeometry height="140" width="400" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="pgPosRepo" parent="1" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=13;fontColor=#000000;" value="PostgresPositionRepository" vertex="1">
+          <mxGeometry height="160" width="380" x="900" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="pgPosRepoContent" parent="pgPosRepo" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#e1d5e7;strokeColor=none;fontSize=11;fontColor=#000000;" value="- db: Database&#xa;--&#xa;+ register(position: Position): Promise&lt;void&gt;&#xa;+ update(position: Position): Promise&lt;void&gt;&#xa;+ findById(id: PositionId): Promise&lt;Position&gt;&#xa;+ openPositions(): Promise&lt;OpenPositions&gt;" vertex="1">
+          <mxGeometry height="130" width="380" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="gmoRestClient" parent="1" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;fontColor=#000000;" value="GmoRestClient" vertex="1">
+          <mxGeometry height="200" width="400" x="40" y="620" as="geometry" />
+        </mxCell>
+        <mxCell id="gmoRestClientContent" parent="gmoRestClient" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#f5f5f5;strokeColor=none;fontSize=11;fontColor=#000000;" value="- apiKey: string&#xa;- apiSecret: string&#xa;--&#xa;+ get&lt;T&gt;(path, params?): Promise&lt;GmoApiResponse&lt;T&gt;&gt;&#xa;+ post&lt;T&gt;(path, body): Promise&lt;GmoApiResponse&lt;T&gt;&gt;&#xa;+ publicGet&lt;T&gt;(path, params?): Promise&lt;GmoApiResponse&lt;T&gt;&gt;&#xa;+ createSignature(timestamp, method, path, body): string" vertex="1">
+          <mxGeometry height="170" width="400" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="gmoWsClient" parent="1" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#f5f5f5;strokeColor=#666666;fontSize=13;fontColor=#000000;" value="GmoWebSocketClient" vertex="1">
+          <mxGeometry height="230" width="400" x="470" y="620" as="geometry" />
+        </mxCell>
+        <mxCell id="gmoWsClientContent" parent="gmoWsClient" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#f5f5f5;strokeColor=none;fontSize=11;fontColor=#000000;" value="- url: string&#xa;- lastServerPingAt: number | null&#xa;--&#xa;+ connect(): Promise&lt;void&gt;&#xa;+ disconnect(): void&#xa;+ send(data: string): void&#xa;+ onMessage(callback: (data: string) =&gt; void): void&#xa;+ onOpen(callback: () =&gt; void): void&#xa;+ onClose(callback: () =&gt; void): void&#xa;+ isConnected: boolean" vertex="1">
+          <mxGeometry height="200" width="400" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="implBroker" edge="1" parent="1" source="gmoBroker" style="endArrow=block;endFill=0;dashed=1;strokeColor=#666666;" target="broker">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="implMarketData" edge="1" parent="1" source="gmoMarketData" style="endArrow=block;endFill=0;dashed=1;strokeColor=#666666;" target="marketDataPort">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="implPosRepo" edge="1" parent="1" source="pgPosRepo" style="endArrow=block;endFill=0;dashed=1;strokeColor=#666666;" target="posRepo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="useBrokerApi" edge="1" parent="1" source="gmoBroker" style="endArrow=open;dashed=1;strokeColor=#666666;fontSize=10;fontColor=#666666;" target="gmoRestClient" value="uses">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="useMarketWs" edge="1" parent="1" source="gmoMarketData" style="endArrow=open;dashed=1;strokeColor=#666666;fontSize=10;fontColor=#666666;" target="gmoWsClient" value="uses">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="noteGmoBroker" parent="1" style="shape=note;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" value="GMO FX APIを使った注文執行&#xa;POST 1秒1回制限あり&#xa;スロットリング内蔵" vertex="1">
+          <mxGeometry height="60" width="240" x="40" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="noteGmoBrokerLine" edge="1" parent="1" source="noteGmoBroker" style="dashed=1;endArrow=none;strokeColor=#d6b656;" target="gmoBroker">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="noteGmoMarket" parent="1" style="shape=note;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" value="WebSocketでリアルタイムtick配信&#xa;再接続ロジック内蔵&#xa;KLines取得はCandleHistoryAdapterが担う" vertex="1">
+          <mxGeometry height="60" width="280" x="470" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="noteGmoMarketLine" edge="1" parent="1" source="noteGmoMarket" style="dashed=1;endArrow=none;strokeColor=#d6b656;" target="gmoMarketData">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="notePgRepo" parent="1" style="shape=note;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" value="positionsテーブルへのCRUD&#xa;Drizzle ORM使用。DBスキーマはER図参照" vertex="1">
+          <mxGeometry height="45" width="280" x="900" y="265" as="geometry" />
+        </mxCell>
+        <mxCell id="notePgRepoLine" edge="1" parent="1" source="notePgRepo" style="dashed=1;endArrow=none;strokeColor=#d6b656;" target="pgPosRepo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="noteRestClient" parent="1" style="shape=note;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" value="HMAC-SHA256署名生成&#xa;GET 1秒6回 / POST 1秒1回のスロットリング&#xa;レート制限エラー時の自動リトライ" vertex="1">
+          <mxGeometry height="60" width="260" x="40" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="noteRestClientLine" edge="1" parent="1" source="noteRestClient" style="dashed=1;endArrow=none;strokeColor=#d6b656;" target="gmoRestClient">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="noteWsClient" parent="1" style="shape=note;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" value="サーバping監視（180秒無受信で切断）&#xa;指数バックオフ再接続（間隔上限5分）&#xa;回数上限なし・永久に再試行（#342）" vertex="1">
+          <mxGeometry height="60" width="260" x="470" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="noteWsClientLine" edge="1" parent="1" source="noteWsClient" style="dashed=1;endArrow=none;strokeColor=#d6b656;" target="gmoWsClient">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="labelPort" parent="1" style="text;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=2;fontColor=#6c8ebf;" value="Port層&#xa;（interface）" vertex="1">
+          <mxGeometry height="60" width="108" x="-58" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="labelAdapter" parent="1" style="text;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=2;fontColor=#9673a6;" value="Adapter層&#xa;（実装）" vertex="1">
+          <mxGeometry height="60" width="81" x="-58" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="labelInfra" parent="1" style="text;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontStyle=2;fontColor=#666666;" value="Infrastructure&#xa;（通信基盤）" vertex="1">
+          <mxGeometry height="60" width="79" x="-61" y="700" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

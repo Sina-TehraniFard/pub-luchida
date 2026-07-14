@@ -1,0 +1,103 @@
+<mxfile host="65bd71144e">
+    <diagram id="vo-market" name="値オブジェクト（市場データ・判定結果）">
+        <mxGraphModel dx="2080" dy="1383" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="bg" value="" style="rounded=1;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#666666;arcSize=3;" parent="1" vertex="1">
+                    <mxGeometry x="-80" y="-40" width="1710" height="1150" as="geometry"/>
+                </mxCell>
+                <mxCell id="title" value="値オブジェクト（市場データ・判定結果）" style="text;align=center;fontStyle=1;fontSize=20;fontColor=#333333;verticalAlign=top;" parent="1" vertex="1">
+                    <mxGeometry x="10" y="10" width="1510" height="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="tick" value="Tick" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="30" y="70" width="250" height="170" as="geometry"/>
+                </mxCell>
+                <mxCell id="tickContent" value="ask: Price&#10;bid: Price&#10;timestamp: TickTimestamp&#10;{ask &gt; bid}&#10;--&#10;+ spread(): Spread&#10;+ midPrice(): Price" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=11;fontColor=#000000;" parent="tick" vertex="1">
+                    <mxGeometry y="30" width="250" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="timeFrame" value="&lt;&lt;enum&gt;&gt;&#10;TimeFrame 時間足種別" style="swimlane;fontStyle=1;align=center;startSize=45;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="310" y="70" width="240" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="timeFrameContent" value="ONE_MINUTE&#10;ONE_HOUR&#10;ONE_DAY&#10;{当面はこの3種固定}&#10;--&#10;+ duration(): Duration&#10;+ label(): String" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=11;fontColor=#000000;" parent="timeFrame" vertex="1">
+                    <mxGeometry y="45" width="240" height="115" as="geometry"/>
+                </mxCell>
+                <mxCell id="smaValue" value="SmaValue&#10;SMA値" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="580" y="70" width="280" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="smaValueContent" value="value: BigDecimal&#10;{正の数}&#10;--&#10;+ isAbove(other: SmaValue): boolean&#10;+ compareTo(other: SmaValue): int" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=11;fontColor=#000000;" parent="smaValue" vertex="1">
+                    <mxGeometry y="40" width="280" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="formingCandle" value="FormingCandle&#10;未確定足" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="20" y="320" width="290" height="270" as="geometry"/>
+                </mxCell>
+                <mxCell id="formingCandleContent" value="open: Price&#10;high: Price&#10;low: Price&#10;close: Price&#10;openTime: CandleOpenTime&#10;timeFrame: TimeFrame&#10;{high &gt;= open, close, low}&#10;--&#10;+ update(tick: Tick): CandleEvent&#10;+ confirm(closeTime: CandleCloseTime): CandleEvent&#10;+ toConfirmed(closeTime: CandleCloseTime): ConfirmedCandle" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=11;fontColor=#000000;" parent="formingCandle" vertex="1">
+                    <mxGeometry y="40" width="290" height="230" as="geometry"/>
+                </mxCell>
+                <mxCell id="confirmedCandle" value="ConfirmedCandle&#10;確定足" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="340" y="320" width="280" height="270" as="geometry"/>
+                </mxCell>
+                <mxCell id="confirmedCandleContent" value="open: Price&#10;high: Price&#10;low: Price&#10;close: Price&#10;openTime: CandleOpenTime&#10;closeTime: CandleCloseTime&#10;timeFrame: TimeFrame&#10;{不変。high &gt;= open, close &gt;= low}&#10;{closeTime &gt; openTime}" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=11;fontColor=#000000;" parent="confirmedCandle" vertex="1">
+                    <mxGeometry y="40" width="280" height="230" as="geometry"/>
+                </mxCell>
+                <mxCell id="judgeLabel" value="判定結果（詳細は value-objects-trading.drawio 参照）" style="text;align=left;fontStyle=2;fontSize=11;fontColor=#666666;verticalAlign=top;" vertex="1" parent="1">
+                    <mxGeometry x="-10" y="620" width="500" height="25" as="geometry"/>
+                </mxCell>
+                <mxCell id="entryCommand" value="EntryCommand" style="rounded=1;whiteSpace=wrap;arcSize=20;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;fontColor=#000000;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="-10" y="655" width="200" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="entryCommandNote" value="pair: CurrencyPair&#10;buySell: BuySell&#10;lot: Lot&#10;reason: EntryReason&#10;convictionScore: ConvictionScore&#10;{全フィールド必須}" style="text;align=left;verticalAlign=top;spacingLeft=4;fontSize=10;fontColor=#666666;" vertex="1" parent="1">
+                    <mxGeometry x="-10" y="715" width="200" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="exitCommand" value="ExitCommand" style="rounded=1;whiteSpace=wrap;arcSize=20;fillColor=#f5f5f5;strokeColor=#999999;fontSize=12;fontColor=#000000;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="220" y="655" width="200" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="exitCommandNote" value="type: TAKE_PROFIT | STOP_LOSS&#10;positionId: PositionId&#10;reason: ExitReason&#10;{全フィールド必須}" style="text;align=left;verticalAlign=top;spacingLeft=4;fontSize=10;fontColor=#666666;" vertex="1" parent="1">
+                    <mxGeometry x="220" y="715" width="200" height="65" as="geometry"/>
+                </mxCell>
+                <mxCell id="doNothing" value="DoNothing" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="450" y="655" width="230" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="doNothingContent" value="INSTANCE: DoNothing&#10;{シングルトン。&#10;何もしないを型で表現。&#10;nullの代わり}" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=11;fontColor=#000000;" parent="doNothing" vertex="1">
+                    <mxGeometry y="30" width="230" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="entryResult" value="EntryResult" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="710" y="655" width="230" height="115" as="geometry"/>
+                </mxCell>
+                <mxCell id="entryResultContent" value="positionId: PositionId&#10;entryPrice: Price&#10;executedAt: Timestamp&#10;{全フィールド必須}" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=11;fontColor=#000000;" parent="entryResult" vertex="1">
+                    <mxGeometry y="30" width="230" height="85" as="geometry"/>
+                </mxCell>
+                <mxCell id="exitResult" value="ExitResult" style="swimlane;fontStyle=1;align=center;startSize=30;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="970" y="655" width="230" height="115" as="geometry"/>
+                </mxCell>
+                <mxCell id="exitResultContent" value="exitPrice: Price&#10;executedAt: Timestamp&#10;profitLoss: Pips&#10;{全フィールド必須}" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=11;fontColor=#000000;" parent="exitResult" vertex="1">
+                    <mxGeometry y="30" width="230" height="85" as="geometry"/>
+                </mxCell>
+                <mxCell id="openPositions" value="OpenPositions&#10;コレクションオブジェクト" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1230" y="655" width="240" height="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="openPositionsContent" value="positions: List&lt;Position&gt;&#10;{全てstatus=OPEN}&#10;--&#10;+ count(): int&#10;+ forEach(consumer): void&#10;+ hasPositionFor(pair): boolean" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=11;fontColor=#000000;" parent="openPositions" vertex="1">
+                    <mxGeometry y="40" width="240" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="convictionScore" value="ConvictionScore&#10;確信スコア" style="swimlane;fontStyle=1;align=center;startSize=40;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=13;fontColor=#000000;" vertex="1" parent="1">
+                    <mxGeometry x="30" y="870" width="300" height="165" as="geometry"/>
+                </mxCell>
+                <mxCell id="convictionScoreContent" value="value: BigDecimal&#10;{0.0以上1.0以下}&#10;--&#10;SMAスプレッドをATRで正規化し、&#10;ガウス関数で0〜1にスケーリング。&#10;逆U字：広がりすぎも狭すぎも低スコア&#10;--&#10;+ of(atRatio: BigDecimal): ConvictionScore&#10;+ isHighEnough(threshold: ConvictionScore): boolean" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;fillColor=#fff2cc;strokeColor=none;fontSize=11;fontColor=#000000;" vertex="1" parent="convictionScore">
+                    <mxGeometry y="40" width="300" height="125" as="geometry"/>
+                </mxCell>
+                <mxCell id="convictionScoreNote" value="luchida-rulesで実装。&#10;SMA乖離幅 / ATR をガウス関数に入力。&#10;EntryCommandに含めてEntryExecutionに渡す。&#10;記録・分析用。判定はluchida-rulesの責務。" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=10;fontColor=#997a2d;align=left;" vertex="1" parent="1">
+                    <mxGeometry x="350" y="870" width="280" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow1" value="confirm()" style="endArrow=open;endFill=0;dashed=1;endSize=12;strokeColor=#666666;fontSize=11;fontColor=#333333;" parent="1" source="formingCandle" target="confirmedCandle" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow2" value="update(tick)" style="endArrow=open;endFill=0;dashed=1;endSize=12;strokeColor=#666666;fontSize=11;fontColor=#333333;" parent="1" source="formingCandle" target="tick" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arrow3" value="timeFrame" style="endArrow=diamond;endFill=1;endSize=12;strokeColor=#666666;fontSize=11;fontColor=#333333;" parent="1" source="formingCandle" target="timeFrame" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

@@ -1,0 +1,77 @@
+<mxfile host="65bd71144e">
+    <diagram name="TimeFrameBook Class Diagram" id="market_data_book_class">
+        <mxGraphModel dx="1104" dy="786" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1400" pageHeight="1000" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="bg" value="" style="whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;connectable=0;" parent="1" vertex="1">
+                    <mxGeometry width="800" height="520" as="geometry"/>
+                </mxCell>
+                <mxCell id="title" value="時間足帳簿 クラス図" style="text;align=center;verticalAlign=middle;fontSize=20;fontStyle=1;fontColor=#333;shadow=1;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;connectable=0;" parent="1" vertex="1">
+                    <mxGeometry x="8" y="4" width="784" height="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="tfb" value="TimeFrameBook&#10;時間足帳簿" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#dae8fc;strokeColor=#6c8ebf;startSize=45;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="14" y="42" width="340" height="210" as="geometry"/>
+                </mxCell>
+                <mxCell id="tfb_attrs" value="constructor(pair: CurrencyPair, config: IndicatorConfig, factory: SmaCalculatorFactory)&#10;- entries: Map&lt;TimeFrame, TimeFrameEntry&gt;" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="tfb" vertex="1">
+                    <mxGeometry y="45" width="340" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="tfb_sep" value="" style="line;strokeColor=#6c8ebf;" parent="tfb" vertex="1">
+                    <mxGeometry y="75" width="340" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="tfb_methods" value="+ warmUp(timeFrame: TimeFrame, confirmedCandles: ConfirmedCandle[]): void&#10;+ onTick(tick: Tick): MarketSnapshot&#10;- assembleSnapshot(tick: Tick): MarketSnapshot" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="tfb" vertex="1">
+                    <mxGeometry y="83" width="340" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="note_tfb" value="複数の時間足を束ねて管理する帳簿。&#10;MTF（マルチタイムフレーム）分析の入口。&#10;足組立係と指標台帳を時間足ごとにペアで保持。&#10;相場概況（MarketSnapshot）の組み立て責務も持つ" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" parent="tfb" vertex="1">
+                    <mxGeometry y="140" width="310" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="note_tfb_arr" style="strokeColor=#d6b656;dashed=1;endArrow=none;" parent="tfb" source="note_tfb" target="tfb" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="tfe" value="TimeFrameEntry" style="swimlane;fontStyle=1;align=center;fontSize=13;fillColor=#dae8fc;strokeColor=#6c8ebf;startSize=30;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="471" y="50" width="280" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="tfe_attrs" value="- timeFrame: TimeFrame&#10;- accumulator: CandleAccumulator&#10;- ledger: IndicatorLedger" style="text;align=left;verticalAlign=top;fontSize=12;fontColor=#333;" parent="tfe" vertex="1">
+                    <mxGeometry y="30" width="280" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_tfb_tfe" value="1..*" style="endArrow=open;endFill=0;startArrow=diamond;startFill=1;strokeColor=#333;fontSize=11;fontColor=#fffafa;startSize=14;exitX=1;exitY=0.3;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="tfb" target="tfe" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ref_snapshot" value="MarketSnapshot&#10;&#10;参照: market-data-snapshot.drawio" style="rounded=0;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#999;fontColor=#999;fontSize=12;fontStyle=1;dashed=1;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="341" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_tfb_snap" value="creates" style="endArrow=open;endFill=0;dashed=1;strokeColor=#999;fontSize=11;fontColor=#999;fontStyle=2;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" target="ref_snapshot" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <mxPoint x="168" y="253" as="sourcePoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="ref_candle" value="CandleAccumulator&#10;&#10;参照: market-data-candle.drawio" style="rounded=0;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#999;fontColor=#999;fontSize=12;fontStyle=1;dashed=1;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="471" y="345" width="250" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="ref_indicator_config" value="IndicatorConfig&#10;&#10;SMA期間の設定値オブジェクト" style="rounded=0;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#d6b656;fontColor=#997a2d;fontSize=12;fontStyle=1;dashed=1;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="50" y="430" width="240" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="ref_sma_factory" value="&lt;&lt;interface&gt;&gt;&#10;SmaCalculatorFactory&#10;&#10;SmaCalculatorの生成ファクトリ" style="rounded=0;whiteSpace=wrap;fillColor=#e1d5e7;strokeColor=#9673a6;fontColor=#9673a6;fontSize=12;fontStyle=1;dashed=1;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="350" y="430" width="280" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_tfb_config" value="uses" style="endArrow=open;endFill=0;dashed=1;strokeColor=#d6b656;fontSize=11;fontColor=#d6b656;fontStyle=2;" parent="1" source="tfb" target="ref_indicator_config" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_tfb_factory" value="uses" style="endArrow=open;endFill=0;dashed=1;strokeColor=#9673a6;fontSize=11;fontColor=#9673a6;fontStyle=2;" parent="1" source="tfb" target="ref_sma_factory" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="ref_indicator" value="IndicatorLedger&#10;&#10;参照: market-data-indicator.drawio" style="rounded=0;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#999;fontColor=#999;fontSize=12;fontStyle=1;dashed=1;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="535" y="241" width="250" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_tfe_candle" value="" style="endArrow=open;endFill=0;dashed=1;strokeColor=#999;fontSize=11;exitX=0.164;exitY=1.013;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.184;entryY=0.033;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="tfe_attrs" target="ref_candle" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="arr_tfe_indicator" value="" style="endArrow=open;endFill=0;dashed=1;strokeColor=#999;fontSize=11;exitX=0.879;exitY=1;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.75;entryY=0;entryDx=0;entryDy=0;" parent="1" source="tfe_attrs" target="ref_indicator" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

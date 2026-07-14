@@ -1,0 +1,242 @@
+<mxfile host="65bd71144e">
+    <diagram name="BarBoundaryWatchdog クラス図" id="bar_boundary_watchdog_class">
+        <mxGraphModel dx="1400" dy="900" grid="0" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1700" pageHeight="1300" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="bg" value="" style="whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;connectable=0;" parent="1" vertex="1">
+                    <mxGeometry width="1680" height="1240" as="geometry"/>
+                </mxCell>
+                <mxCell id="title" value="BarBoundaryWatchdog クラス図（足境界の番人 / 定期照合・訂正）" style="text;align=center;verticalAlign=middle;fontSize=20;fontStyle=1;fontColor=#333;movable=0;resizable=0;rotatable=0;deletable=0;editable=0;connectable=0;" parent="1" vertex="1">
+                    <mxGeometry x="20" y="10" width="1000" height="40" as="geometry"/>
+                </mxCell>
+
+                <!-- ===== 層の帯ラベル ===== -->
+                <mxCell id="band_infra" value="infrastructure 層（壁時計・いつ照合するか）" style="text;align=left;verticalAlign=middle;fontSize=13;fontStyle=1;fontColor=#7a5c00;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="70" width="420" height="24" as="geometry"/>
+                </mxCell>
+                <mxCell id="band_app" value="application 層（調停・翻訳）" style="text;align=left;verticalAlign=middle;fontSize=13;fontStyle=1;fontColor=#1f5c2e;" parent="1" vertex="1">
+                    <mxGeometry x="480" y="70" width="380" height="24" as="geometry"/>
+                </mxCell>
+                <mxCell id="band_domain" value="domain 層（どう補正するか・不変条件） ＝ オニオンの最内核" style="text;align=left;verticalAlign=middle;fontSize=13;fontStyle=1;fontColor=#1a3a6b;" parent="1" vertex="1">
+                    <mxGeometry x="900" y="70" width="640" height="24" as="geometry"/>
+                </mxCell>
+
+                <!-- ============ infrastructure: BoundaryScheduler ============ -->
+                <mxCell id="scheduler" value="BoundaryScheduler  【新規】&#xa;壁時計（次境界 + 15秒で発火）" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#fff2cc;strokeColor=#d6b656;startSize=50;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="110" width="400" height="230" as="geometry"/>
+                </mxCell>
+                <mxCell id="scheduler_attrs" value="- clock: () =&gt; number          （現在時刻。注入可能）&#xa;- setTimer / clearTimer        （setTimeout 抽象。注入可能）&#xa;- onBoundary: (tf) =&gt; Promise&lt;void&gt;   （発火コールバック）&#xa;- OFFSET_SEC = 15              （インフラ値）" style="text;align=left;verticalAlign=top;spacingLeft=6;spacingRight=4;overflow=hidden;fontSize=11;fontColor=#333;" parent="scheduler" vertex="1">
+                    <mxGeometry y="50" width="400" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="scheduler_sep" value="" style="line;strokeColor=#d6b656;" parent="scheduler" vertex="1">
+                    <mxGeometry y="140" width="400" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="scheduler_methods" value="+ start(timeFrames: TimeFrame[]): void&#xa;+ stop(): void" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;fontSize=11;fontColor=#333;" parent="scheduler" vertex="1">
+                    <mxGeometry y="148" width="400" height="82" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="note_scheduler" value="壁時計。tick 受信状態に依存せず、&#xa;毎時 :00/:15/:30/:45 等の境界 + 15秒に必ず発火する。&#xa;clock / timer を注入できるのでテストで時刻を固定可能。&#xa;発火 → onBoundary を await → finally で次境界へ再スケジュール。&#xa;再入不可：start は再入ガードで二重起動を防ぐ。&#xa;足ごとに独立タイマー（足間の競合制御は持たない）。&#xa;ドメインも REST も知らない（いつ起きるかだけを知る）" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="360" width="400" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="note_scheduler_arr" style="strokeColor=#d6b656;dashed=1;endArrow=none;" parent="1" source="note_scheduler" target="scheduler" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- ============ application: BarReconciler ============ -->
+                <mxCell id="reconciler" value="BarReconciler  【新規】&#xa;調停役（壁時計に起こされ照合を命じる）" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#d5e8d4;strokeColor=#82b366;startSize=50;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="480" y="110" width="380" height="250" as="geometry"/>
+                </mxCell>
+                <mxCell id="reconciler_attrs" value="- candleHistoryPort: CandleHistoryPort&#xa;- timeFrameBook: TimeFrameBook&#xa;- logger / notifier&#xa;- RECONCILE_BARS = 200   （インフラ値）" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;fontSize=11;fontColor=#333;" parent="reconciler" vertex="1">
+                    <mxGeometry y="50" width="380" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="reconciler_sep" value="" style="line;strokeColor=#82b366;" parent="reconciler" vertex="1">
+                    <mxGeometry y="130" width="380" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="reconciler_methods" value="+ reconcile(timeFrame: TimeFrame): Promise&lt;void&gt;&#xa;  1. port.fetchRecent(tf, RECONCILE_BARS)&#xa;  2. timeFrameBook.reconcile(tf, official)&#xa;  3. 戻りが BarReconciled（是正あり）なら INFO ログ&#xa;  4. REST 失敗は WARN ログして return" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;fontSize=11;fontColor=#333;" parent="reconciler" vertex="1">
+                    <mxGeometry y="138" width="380" height="112" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="note_reconciler" value="壁時計の発火を「ドメインへの照合要求」に翻訳するだけ。&#xa;SMA 計算方式・確定足の組み立て・isStable は知らない。&#xa;await（REST 取得）を挟む区間と、ドメイン状態を触る区間を分離する&#xa;（取得後の timeFrameBook.reconcile は同期的に一気に実行 ＝ 原子性確保）。&#xa;REST 失敗時はクラッシュせず次境界で自然に再試行。" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="480" y="380" width="380" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="note_reconciler_arr" style="strokeColor=#d6b656;dashed=1;endArrow=none;" parent="1" source="note_reconciler" target="reconciler" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- ============ domain: TimeFrameBook ============ -->
+                <mxCell id="tfb" value="TimeFrameBook  【既存 + 追加】&#xa;時間足帳簿（ドメインの照合入口）" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#dae8fc;strokeColor=#6c8ebf;startSize=50;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="900" y="110" width="420" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="tfb_methods_existing" value="+ warmUp(tf, confirmedCandles[]): void          【既存】&#xa;+ onTick(tick): MarketSnapshot                  【既存】" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;fontSize=11;fontColor=#999999;" parent="tfb" vertex="1">
+                    <mxGeometry y="50" width="420" height="44" as="geometry"/>
+                </mxCell>
+                <mxCell id="tfb_sep" value="" style="line;strokeColor=#6c8ebf;" parent="tfb" vertex="1">
+                    <mxGeometry y="94" width="420" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="tfb_methods_new" value="+ reconcile(timeFrame, officialCandles[]): BarReconciled | null   【新規】&#xa;     確定足を先に正し（accumulator.reconcileLastConfirmed）、&#xa;     その後 SMA を再構築（ledger.reconcileWith）。&#xa;     是正があったときだけ BarReconciled を返す（差分なしは null）" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;fontSize=11;fontColor=#0b5394;fontStyle=1;" parent="tfb" vertex="1">
+                    <mxGeometry y="102" width="420" height="78" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="note_tfb" value="watchdog 側が触れてよい唯一のドメイン入口。&#xa;配下の IndicatorLedger と CandleAccumulator に補正を委譲し、&#xa;結果を BarReconciled（こと）として組み立てて返す。&#xa;Map も参照も差し替えない（オブジェクト同一性を保つ）。" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="900" y="310" width="420" height="92" as="geometry"/>
+                </mxCell>
+                <mxCell id="note_tfb_arr" style="strokeColor=#d6b656;dashed=1;endArrow=none;" parent="1" source="note_tfb" target="tfb" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- ============ domain: IndicatorLedger ============ -->
+                <mxCell id="ledger" value="IndicatorLedger  【既存 + 追加】&#xa;指標台帳（元帳メタファ）" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#dae8fc;strokeColor=#6c8ebf;startSize=50;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="900" y="470" width="420" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="ledger_existing" value="+ warmUp(confirmedCandles[]): void          【既存】初期化（空状態から）&#xa;+ onCandleConfirmed(confirmedCandle): void  【既存】&#xa;+ onCandleUpdated(formingCandle): void      【既存】&#xa;+ currentValues(): IndicatorValues          【既存】" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;fontSize=11;fontColor=#999999;" parent="ledger" vertex="1">
+                    <mxGeometry y="50" width="420" height="76" as="geometry"/>
+                </mxCell>
+                <mxCell id="ledger_sep" value="" style="line;strokeColor=#6c8ebf;" parent="ledger" vertex="1">
+                    <mxGeometry y="126" width="420" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="ledger_new" value="+ reconcileWith(officialCandles[]): SmaSnapshot差分   【新規】&#xa;     内部 SmaTracker(short/long) を作り直し、&#xa;     公式 close 列を再投入。補正前後の SMA を返す&#xa;     （丸ごと再構築。部分巻き戻しはしない）" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;fontSize=11;fontColor=#0b5394;fontStyle=1;" parent="ledger" vertex="1">
+                    <mxGeometry y="134" width="420" height="86" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="note_ledger" value="採用＝案B：「正しい台帳の作り方」を所有者自身に閉じ込める。&#xa;warmUp（初期化）と reconcileWith（定期補正）は別概念：&#xa;　・warmUp     ＝ 起動時、事前状態は空、戻り値なし&#xa;　・reconcileWith ＝ 稼働中、誤値を持つ、補正前後を返す&#xa;reconcile（照合・訂正）は会計の Reconciliation。元帳メタファと整合。" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="900" y="710" width="420" height="116" as="geometry"/>
+                </mxCell>
+                <mxCell id="note_ledger_arr" style="strokeColor=#d6b656;dashed=1;endArrow=none;" parent="1" source="note_ledger" target="ledger" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- ============ domain: CandleAccumulator ============ -->
+                <mxCell id="accumulator" value="CandleAccumulator  【既存 + 追加】&#xa;足組立係" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#dae8fc;strokeColor=#6c8ebf;startSize=50;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="1380" y="470" width="270" height="220" as="geometry"/>
+                </mxCell>
+                <mxCell id="acc_existing" value="+ accumulate(tick): CandleEvent   【既存】&#xa;+ lastConfirmed(): ConfirmedCandle 【既存】&#xa;+ seedHistory(candles[]): void    【既存】" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;fontSize=11;fontColor=#999999;" parent="accumulator" vertex="1">
+                    <mxGeometry y="50" width="270" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="acc_sep" value="" style="line;strokeColor=#6c8ebf;" parent="accumulator" vertex="1">
+                    <mxGeometry y="110" width="270" height="8" as="geometry"/>
+                </mxCell>
+                <mxCell id="acc_new" value="+ reconcileLastConfirmed(official): void  【新規】&#xa;     直近確定足を公式値（OHLC）に揃える" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;fontSize=11;fontColor=#0b5394;fontStyle=1;" parent="accumulator" vertex="1">
+                    <mxGeometry y="118" width="270" height="102" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="note_acc" value="補正は close だけでなく&#xa;open / high / low も公式値に揃える&#xa;（OHLC 全体）。" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="1380" y="710" width="270" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="note_acc_arr" style="strokeColor=#d6b656;dashed=1;endArrow=none;" parent="1" source="note_acc" target="accumulator" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- ============ domain: BarReconciled (event VO) ============ -->
+                <mxCell id="event" value="BarReconciled  【新規・こと】&#xa;確定足が公式値と照合・是正された出来事（値オブジェクト）" style="swimlane;fontStyle=1;align=center;fontSize=14;fillColor=#d5e8d4;strokeColor=#82b366;startSize=50;fontColor=#000000;" parent="1" vertex="1">
+                    <mxGeometry x="480" y="560" width="380" height="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="event_attrs" value="+ timeFrame: TimeFrame              どの足の照合か&#xa;+ reconciledAt: Timestamp           いつ是正したか&#xa;+ before: SmaSnapshot | null        是正前の SMA（未安定からの是正のみ null）&#xa;+ after: SmaSnapshot                 是正後の SMA（是正成立＝常に存在）" style="text;align=left;verticalAlign=top;spacingLeft=6;overflow=hidden;fontSize=11;fontColor=#333;" parent="event" vertex="1">
+                    <mxGeometry y="50" width="380" height="150" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="note_event" value="是正は持続する「もの」でなく、瞬間に発生する「こと」（イベント）。&#xa;是正が起きたときだけ生成される ＝ INFO ログの発火源。&#xa;差分が無ければ reconcile は null を返し、この「こと」は発生しない。&#xa;before/after は事故再発監視の証跡・将来の WF 分析用の証跡。" style="shape=note;whiteSpace=wrap;size=14;fillColor=#fffbe6;strokeColor=#d6b656;fontSize=11;fontColor=#997a2d;align=left;" parent="1" vertex="1">
+                    <mxGeometry x="480" y="780" width="380" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="note_event_arr" style="strokeColor=#d6b656;dashed=1;endArrow=none;" parent="1" source="note_event" target="event" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- ============ domain: ConfirmedCandle (reused) ============ -->
+                <mxCell id="ref_confirmed" value="ConfirmedCandle  【既存・流用】&#xa;確定足の値オブジェクト（OHLC を Price で保持）&#xa;公式値の運び手&#xa;&#xa;参照: market-data-candle.drawio" style="rounded=0;whiteSpace=wrap;fillColor=#dae8fc;strokeColor=#6c8ebf;fontColor=#1a3a6b;fontSize=12;fontStyle=1;dashed=1;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="900" y="900" width="400" height="90" as="geometry"/>
+                </mxCell>
+
+                <!-- ============ port: CandleHistoryPort (reused) ============ -->
+                <mxCell id="ref_port" value="&lt;&lt;interface&gt;&gt;&#xa;CandleHistoryPort  【既存・流用 / port】&#xa;+ fetchRecent(tf, count): Promise&lt;ConfirmedCandle[]&gt;&#xa;&#xa;公式 klines 取得。GmoCandleHistoryAdapter が実装" style="rounded=0;whiteSpace=wrap;fillColor=#e1d5e7;strokeColor=#9673a6;fontColor=#5a3d6b;fontSize=12;fontStyle=1;dashed=1;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="480" y="900" width="380" height="100" as="geometry"/>
+                </mxCell>
+
+                <!-- =================== 依存矢印 =================== -->
+                <!-- BoundaryScheduler -> BarReconciler (onBoundary) -->
+                <mxCell id="arr_sched_rec" value="onBoundary ＝ reconcile" style="endArrow=open;endFill=0;strokeColor=#333;fontSize=11;fontColor=#333;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" parent="1" source="scheduler" target="reconciler" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- BarReconciler -> CandleHistoryPort -->
+                <mxCell id="arr_rec_port" value="fetchRecent" style="endArrow=open;endFill=0;dashed=1;strokeColor=#9673a6;fontSize=11;fontColor=#5a3d6b;fontStyle=2;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="reconciler" target="ref_port" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="670" y="540"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+
+                <!-- BarReconciler -> TimeFrameBook.reconcile -->
+                <mxCell id="arr_rec_tfb" value="reconcile(tf, official)" style="endArrow=open;endFill=0;strokeColor=#333;fontSize=11;fontColor=#333;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.4;entryDx=0;entryDy=0;" parent="1" source="reconciler" target="tfb" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- TimeFrameBook -> IndicatorLedger -->
+                <mxCell id="arr_tfb_ledger" value="reconcileWith" style="endArrow=open;endFill=0;startArrow=diamond;startFill=1;strokeColor=#333;fontSize=11;fontColor=#333;startSize=12;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="tfb" target="ledger" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- TimeFrameBook -> CandleAccumulator -->
+                <mxCell id="arr_tfb_acc" value="reconcileLastConfirmed" style="endArrow=open;endFill=0;startArrow=diamond;startFill=1;strokeColor=#333;fontSize=11;fontColor=#333;startSize=12;exitX=1;exitY=0.6;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="tfb" target="accumulator" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1515" y="380"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+
+                <!-- TimeFrameBook -> BarReconciled (creates) -->
+                <mxCell id="arr_tfb_event" value="creates / returns" style="endArrow=open;endFill=0;dashed=1;strokeColor=#82b366;fontSize=11;fontColor=#1f5c2e;fontStyle=2;exitX=0.1;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="tfb" target="event" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="670" y="430"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+
+                <!-- CandleHistoryPort -> ConfirmedCandle (returns) -->
+                <mxCell id="arr_port_confirmed" value="returns" style="endArrow=open;endFill=0;dashed=1;strokeColor=#6c8ebf;fontSize=11;fontColor=#1a3a6b;fontStyle=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="ref_port" target="ref_confirmed" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <!-- BarReconciled -> SmaSnapshot reference note (light) -->
+
+                <!-- =================== 凡例 / 設計の柱メモ =================== -->
+                <mxCell id="legend" value="凡例 / 設計の柱" style="swimlane;fontStyle=1;align=center;fontSize=13;fillColor=#ffffff;strokeColor=#666666;startSize=30;fontColor=#333;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="540" width="400" height="340" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend_infra" value="" style="fillColor=#fff2cc;strokeColor=#d6b656;" parent="legend" vertex="1">
+                    <mxGeometry x="14" y="42" width="26" height="18" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend_infra_txt" value="infrastructure（壁時計・タイマー）" style="text;align=left;verticalAlign=middle;fontSize=11;fontColor=#333;" parent="legend" vertex="1">
+                    <mxGeometry x="48" y="40" width="330" height="22" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend_app" value="" style="fillColor=#d5e8d4;strokeColor=#82b366;" parent="legend" vertex="1">
+                    <mxGeometry x="14" y="68" width="26" height="18" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend_app_txt" value="application（調停役）／ domain の「こと」" style="text;align=left;verticalAlign=middle;fontSize=11;fontColor=#333;" parent="legend" vertex="1">
+                    <mxGeometry x="48" y="66" width="330" height="22" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend_domain" value="" style="fillColor=#dae8fc;strokeColor=#6c8ebf;" parent="legend" vertex="1">
+                    <mxGeometry x="14" y="94" width="26" height="18" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend_domain_txt" value="domain（もの・台帳・足）" style="text;align=left;verticalAlign=middle;fontSize=11;fontColor=#333;" parent="legend" vertex="1">
+                    <mxGeometry x="48" y="92" width="330" height="22" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend_port" value="" style="fillColor=#e1d5e7;strokeColor=#9673a6;" parent="legend" vertex="1">
+                    <mxGeometry x="14" y="120" width="26" height="18" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend_port_txt" value="port（既存インターフェース・流用）" style="text;align=left;verticalAlign=middle;fontSize=11;fontColor=#333;" parent="legend" vertex="1">
+                    <mxGeometry x="48" y="118" width="330" height="22" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend_marks" value="【新規】＝今回追加するクラス／メソッド（青字・太字で強調）&#xa;【既存】＝既存メソッド（グレー字。変更しない）&#xa;【既存 + 追加】＝既存クラスにメソッドを足す&#xa;破線枠 ＝ 流用クラス（他図に定義あり）" style="text;align=left;verticalAlign=top;spacingLeft=6;fontSize=11;fontColor=#333;" parent="legend" vertex="1">
+                    <mxGeometry x="14" y="148" width="372" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="legend_onion" value="オニオン型の鉄則：依存は外→内の一方向。&#xa;domain は infrastructure / port / adapter を知らない。&#xa;watchdog は「いつ照合するか」だけを知り、&#xa;「どう補正するか」は domain に閉じる。&#xa;足は1種類（案X）。推定／公式は出自で区別し、&#xa;速報/確定の2型は作らない。" style="text;align=left;verticalAlign=top;spacingLeft=6;fontSize=11;fontColor=#7a5c00;fontStyle=1;" parent="legend" vertex="1">
+                    <mxGeometry x="14" y="232" width="372" height="100" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
